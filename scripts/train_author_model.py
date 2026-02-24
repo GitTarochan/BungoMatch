@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
+import unicodedata
 import zipfile
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
@@ -28,6 +30,10 @@ AUTHOR_INFO = {
         "label": "自己告白の揺らぎ",
         "comment": "自己告白的な文体が目立ちます。弱さを隠さず差し出す語り口です。",
     },
+    "芥川竜之介": {
+        "label": "冷静な描写と陰影",
+        "comment": "場面描写が先に立ち、人物の内面が遅れて浮かぶ構図が目立ちます。",
+    },
     "芥川龍之介": {
         "label": "冷静な描写と陰影",
         "comment": "場面描写が先に立ち、人物の内面が遅れて浮かぶ構図が目立ちます。",
@@ -40,7 +46,152 @@ AUTHOR_INFO = {
         "label": "余情と気配の細工",
         "comment": "語尾の余情と人物の気配をにじませる運びが強めです。",
     },
+    "森鴎外": {
+        "label": "理性と感情の緊張",
+        "comment": "論理性のある運びの中に、抑えた情念がにじむ語りです。",
+    },
+    "谷崎潤一郎": {
+        "label": "美意識と官能の配列",
+        "comment": "美の対象を執拗に見つめるような精密な描写が近いです。",
+    },
+    "江戸川乱歩": {
+        "label": "怪奇と論理の二重奏",
+        "comment": "異様な空気の演出と、謎を追う運びの両方が現れています。",
+    },
+    "与謝野晶子": {
+        "label": "感情の直截な熱量",
+        "comment": "感情を率直に押し出す、勢いのある言葉選びが目立ちます。",
+    },
+    "泉鏡花": {
+        "label": "幻想と雅語の陰影",
+        "comment": "現実と幻想の境界をぼかす、装飾的で濃密な語りです。",
+    },
 }
+
+AUTHOR_REPRESENTATIVE_OVERRIDES = {
+    "夏目漱石": {
+        "representative_work": "坊っちやん",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000148/card50420.html",
+    },
+    "太宰治": {
+        "representative_work": "人間失格",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000035/card301.html",
+    },
+    "芥川竜之介": {
+        "representative_work": "羅生門",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000879/card127.html",
+    },
+    "芥川龍之介": {
+        "representative_work": "羅生門",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000879/card127.html",
+    },
+    "宮沢賢治": {
+        "representative_work": "銀河鉄道の夜",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000081/card46322.html",
+    },
+    "森鴎外": {
+        "representative_work": "舞姫",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000129/card682.html",
+    },
+    "樋口一葉": {
+        "representative_work": "たけくらべ",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000064/card389.html",
+    },
+    "谷崎潤一郎": {
+        "representative_work": "痴人の愛",
+        "aozora_url": "https://www.aozora.gr.jp/cards/001383/card58093.html",
+    },
+    "江戸川乱歩": {
+        "representative_work": "怪人二十面相",
+        "aozora_url": "https://www.aozora.gr.jp/cards/001779/card57228.html",
+    },
+    "与謝野晶子": {
+        "representative_work": "みだれ髪",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000885/card51307.html",
+    },
+    "泉鏡花": {
+        "representative_work": "高野聖",
+        "aozora_url": "https://www.aozora.gr.jp/cards/000050/card43466.html",
+    },
+}
+
+DEFAULT_STOPWORDS = [
+    "そして",
+    "しかし",
+    "また",
+    "ただ",
+    "または",
+    "及び",
+    "という",
+    "として",
+    "について",
+    "において",
+    "これ",
+    "それ",
+    "あれ",
+    "この",
+    "その",
+    "あの",
+    "ここ",
+    "そこ",
+    "あそこ",
+    "こと",
+    "もの",
+    "ため",
+    "よう",
+    "ところ",
+    "ので",
+    "から",
+    "まで",
+    "より",
+    "です",
+    "ます",
+    "である",
+    "いる",
+    "ある",
+    "なる",
+    "した",
+    "して",
+    "され",
+    "られ",
+    "ない",
+    "だった",
+    "へ",
+    "に",
+    "を",
+    "が",
+    "は",
+    "も",
+    "と",
+    "で",
+    "や",
+    "か",
+    "な",
+    "の",
+    "ね",
+    "よ",
+    "ぞ",
+]
+
+
+def build_stopword_pattern(stopwords: list[str]) -> re.Pattern | None:
+    escaped = [re.escape(word) for word in sorted(set(stopwords), key=len, reverse=True) if word]
+    if not escaped:
+        return None
+    return re.compile("|".join(escaped))
+
+
+STOPWORD_PATTERN = build_stopword_pattern(DEFAULT_STOPWORDS)
+
+
+def preprocess_text(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)
+    text = re.sub(r"\s+", "", text)
+    text = re.sub(r"[「」『』（）()［］【】〈〉《》〔〕…・。、，．！？!?ー〜～:：;；\"'`]", "", text)
+    text = re.sub(r"[0-9０-９]+", "", text)
+    if STOPWORD_PATTERN is not None:
+        text = STOPWORD_PATTERN.sub("", text)
+    return text.strip()
 
 
 def to_builtin(value):
@@ -62,11 +213,12 @@ def resolve_author_meta(author_name: str, representative_map: dict[str, dict[str
         },
     )
     representative = representative_map.get(author_name, {})
+    override = AUTHOR_REPRESENTATIVE_OVERRIDES.get(author_name, {})
     return {
         "label": base.get("label", ""),
         "comment": base.get("comment", ""),
-        "representative_work": representative.get("representative_work", ""),
-        "aozora_url": representative.get("aozora_url", ""),
+        "representative_work": override.get("representative_work", "") or representative.get("representative_work", ""),
+        "aozora_url": override.get("aozora_url", "") or representative.get("aozora_url", ""),
     }
 
 
@@ -77,9 +229,9 @@ def load_dataset(path: Path) -> tuple[list[str], list[str]]:
     with path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            text = (row.get("text") or "").strip()
+            text = preprocess_text(row.get("text") or "")
             label = (row.get("label") or "").strip()
-            if not text or not label:
+            if not text or len(text) < 20 or not label:
                 continue
             texts.append(text)
             labels.append(label)
@@ -210,7 +362,14 @@ def export_web_model(
     payload = {
         "version": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": "Aozora Bunko",
-        "pipeline": ["preprocess", "tfidf_char_2_3gram", "logistic_regression_multinomial"],
+        "pipeline": ["normalize_and_remove_stopwords", "tfidf_char_2_3gram", "logistic_regression_multinomial"],
+        "preprocessing": {
+            "normalize": "NFKC",
+            "remove_whitespace": True,
+            "remove_symbols": True,
+            "remove_digits": True,
+            "stopwords": DEFAULT_STOPWORDS,
+        },
         "vectorizer": {
             "ngram_range": [2, 3],
             "norm": "l2",
@@ -286,6 +445,7 @@ def main() -> int:
             "total": len(texts),
         },
         "probability_note": "predict_proba from multinomial logistic regression",
+        "preprocessing_note": "NFKC normalize + remove punctuation/digits/stopwords",
         "avg_max_probability": float(np.mean(np.max(y_prob, axis=1))),
     }
 
@@ -309,6 +469,7 @@ def main() -> int:
                 f"- Accuracy: **{accuracy:.4f}**",
                 f"- Top-3 Accuracy: **{top3_accuracy:.4f}**",
                 f"- Avg max probability: **{metrics['avg_max_probability']:.4f}**",
+                "- Preprocess: **NFKC + 記号/数字/ストップワード除外**",
                 "",
                 "## Classification Report",
                 "",

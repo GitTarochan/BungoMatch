@@ -1,0 +1,30 @@
+{
+  "source_csv": "data/corpus/aozora_corpus.csv",
+  "output_csv": "data/corpus/aozora_corpus_top10.csv",
+  "author_count": 10,
+  "total_samples": 958,
+  "authors": [
+    "夏目漱石",
+    "太宰治",
+    "芥川竜之介",
+    "宮沢賢治",
+    "森鴎外",
+    "樋口一葉",
+    "谷崎潤一郎",
+    "江戸川乱歩",
+    "与謝野晶子",
+    "泉鏡花"
+  ],
+  "label_distribution": {
+    "夏目漱石": 80,
+    "太宰治": 76,
+    "芥川竜之介": 98,
+    "宮沢賢治": 129,
+    "森鴎外": 81,
+    "樋口一葉": 123,
+    "谷崎潤一郎": 104,
+    "江戸川乱歩": 93,
+    "与謝野晶子": 96,
+    "泉鏡花": 78
+  }
+}

@@ -21,14 +21,18 @@
         <p class="eyebrow">AIMathBook CHAPTER 6 Inspired</p>
         <h1>文豪スタイル判定アプリ</h1>
         <p class="lead">
-          文章を入力すると、青空文庫に収録されているトップ100人の文豪のうち、誰の文体に似ているかを推定します。<br />
-          フォームでお題と文字数が書かれております。気軽にお楽しみください。
+          文章を入力すると、有名文豪10人のうち誰に似ているかを推定します。<br />
+          テーマと文字数のガイドに沿って、気軽に試してください。
         </p>
       </header>
 
       <section class="panel">
         <h2>入力フォーム</h2>
         <p id="model-status" class="model-status">学習済みモデルを読み込み中...</p>
+        <div class="candidate-showcase">
+          <h3>今回の判定候補（有名文豪10人）</h3>
+          <div id="author-preview-list" class="author-preview-list"></div>
+        </div>
         <form id="judge-form" novalidate>
           <div class="field">
             <label for="theme-select">作文テーマ</label>
@@ -54,6 +58,10 @@
           </div>
 
           <button id="judge-button" type="submit" disabled>文豪を判定する</button>
+          <p id="suspense-state" class="suspense-state" hidden aria-live="polite">判定中</p>
+          <div id="suspense-meter" class="suspense-meter" hidden>
+            <div class="suspense-fill"></div>
+          </div>
         </form>
       </section>
 

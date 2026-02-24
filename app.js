@@ -39,18 +39,37 @@ const THEMES = [
   },
 ];
 
+const TOP10_FAMOUS_AUTHORS = [
+  "夏目漱石",
+  "太宰治",
+  "芥川竜之介",
+  "宮沢賢治",
+  "森鴎外",
+  "樋口一葉",
+  "谷崎潤一郎",
+  "江戸川乱歩",
+  "与謝野晶子",
+  "泉鏡花",
+];
+
 const AUTHOR_FALLBACK_META = {
   "夏目漱石": {
     label: "理知と皮肉の観察者",
     comment: "理知的な観察と、感情を少し距離を置いて眺める語りが強く出ています。",
-    representative_work: "坊っちゃん",
-    aozora_url: "https://www.aozora.gr.jp/cards/000148/card752.html",
+    representative_work: "坊っちやん",
+    aozora_url: "https://www.aozora.gr.jp/cards/000148/card50420.html",
   },
   "太宰治": {
     label: "自己告白の揺らぎ",
     comment: "自己告白的な文体が目立ちます。弱さを隠さず差し出す語り口です。",
     representative_work: "人間失格",
     aozora_url: "https://www.aozora.gr.jp/cards/000035/card301.html",
+  },
+  "芥川竜之介": {
+    label: "冷静な描写と陰影",
+    comment: "場面描写が先に立ち、人物の内面が遅れて浮かぶ構図が目立ちます。",
+    representative_work: "羅生門",
+    aozora_url: "https://www.aozora.gr.jp/cards/000879/card127.html",
   },
   "芥川龍之介": {
     label: "冷静な描写と陰影",
@@ -62,15 +81,103 @@ const AUTHOR_FALLBACK_META = {
     label: "自然と宇宙の感応",
     comment: "自然現象と心情を重ねる、詩的で澄んだ運びが出ています。",
     representative_work: "銀河鉄道の夜",
-    aozora_url: "https://www.aozora.gr.jp/cards/000081/card456.html",
+    aozora_url: "https://www.aozora.gr.jp/cards/000081/card46322.html",
+  },
+  "森鴎外": {
+    label: "理性と感情の緊張",
+    comment: "論理性のある運びの中に、抑えた情念がにじむ語りです。",
+    representative_work: "舞姫",
+    aozora_url: "https://www.aozora.gr.jp/cards/000129/card682.html",
   },
   "樋口一葉": {
     label: "余情と気配の細工",
     comment: "語尾の余情と人物の気配をにじませる運びが強めです。",
     representative_work: "たけくらべ",
-    aozora_url: "https://www.aozora.gr.jp/cards/000064/card53013.html",
+    aozora_url: "https://www.aozora.gr.jp/cards/000064/card389.html",
+  },
+  "谷崎潤一郎": {
+    label: "美意識と官能の配列",
+    comment: "美の対象を執拗に見つめるような精密な描写が近いです。",
+    representative_work: "痴人の愛",
+    aozora_url: "https://www.aozora.gr.jp/cards/001383/card58093.html",
+  },
+  "江戸川乱歩": {
+    label: "怪奇と論理の二重奏",
+    comment: "異様な空気の演出と、謎を追う運びの両方が現れています。",
+    representative_work: "怪人二十面相",
+    aozora_url: "https://www.aozora.gr.jp/cards/001779/card57228.html",
+  },
+  "与謝野晶子": {
+    label: "感情の直截な熱量",
+    comment: "感情を率直に押し出す、勢いのある言葉選びが目立ちます。",
+    representative_work: "みだれ髪",
+    aozora_url: "https://www.aozora.gr.jp/cards/000885/card51307.html",
+  },
+  "泉鏡花": {
+    label: "幻想と雅語の陰影",
+    comment: "現実と幻想の境界をぼかす、装飾的で濃密な語りです。",
+    representative_work: "高野聖",
+    aozora_url: "https://www.aozora.gr.jp/cards/000050/card43466.html",
   },
 };
+
+const DEFAULT_STOPWORDS = [
+  "そして",
+  "しかし",
+  "また",
+  "ただ",
+  "または",
+  "及び",
+  "という",
+  "として",
+  "について",
+  "において",
+  "これ",
+  "それ",
+  "あれ",
+  "この",
+  "その",
+  "あの",
+  "ここ",
+  "そこ",
+  "あそこ",
+  "こと",
+  "もの",
+  "ため",
+  "よう",
+  "ところ",
+  "ので",
+  "から",
+  "まで",
+  "より",
+  "です",
+  "ます",
+  "である",
+  "いる",
+  "ある",
+  "なる",
+  "した",
+  "して",
+  "され",
+  "られ",
+  "ない",
+  "だった",
+  "へ",
+  "に",
+  "を",
+  "が",
+  "は",
+  "も",
+  "と",
+  "で",
+  "や",
+  "か",
+  "な",
+  "の",
+  "ね",
+  "よ",
+  "ぞ",
+];
 
 const MODEL_PATH = "./models/author_style_web_model.json";
 const LENGTH_CLASSES = ["is-short", "is-good", "is-long"];
@@ -92,16 +199,21 @@ const topCommentEl = document.getElementById("top-comment");
 const rankingListEl = document.getElementById("ranking-list");
 const analysisTextEl = document.getElementById("analysis-text");
 const modelStatusEl = document.getElementById("model-status");
+const authorPreviewListEl = document.getElementById("author-preview-list");
+const suspenseStateEl = document.getElementById("suspense-state");
+const suspenseMeterEl = document.getElementById("suspense-meter");
 
 let currentTheme = THEMES[0];
 let modelBundle = null;
 let modelReady = false;
+let isJudging = false;
 
 init();
 
 async function init() {
   renderThemeOptions();
   applyTheme(currentTheme.id);
+  renderAuthorPreview(getFallbackPreviewAuthors());
 
   themeSelectEl.addEventListener("change", () => {
     applyTheme(themeSelectEl.value);
@@ -168,6 +280,7 @@ async function loadTrainedModel() {
       ? `${(payload.evaluation.accuracy * 100).toFixed(1)}%`
       : "-";
     setModelStatus(`学習済みモデル読込済み（著者数: ${classCount} / 評価Accuracy: ${accuracy}）`, "ready");
+    renderAuthorPreview(getPreviewAuthors(payload));
   } catch (error) {
     modelReady = false;
     console.error(error);
@@ -213,9 +326,78 @@ function setModelStatus(text, variant) {
   }
 }
 
-function handleSubmit(event) {
+function getFallbackPreviewAuthors() {
+  return TOP10_FAMOUS_AUTHORS.map((name) => {
+    const meta = AUTHOR_FALLBACK_META[name] || {};
+    return {
+      name,
+      representativeWork: meta.representative_work || "代表作情報なし",
+      aozoraUrl: meta.aozora_url || "",
+    };
+  });
+}
+
+function getPreviewAuthors(payload) {
+  const classes = payload?.classifier?.classes || [];
+  if (!classes.length) {
+    return getFallbackPreviewAuthors();
+  }
+
+  const orderMap = new Map(TOP10_FAMOUS_AUTHORS.map((name, idx) => [name, idx]));
+  const items = classes
+    .map((name) => {
+      const meta = getAuthorMeta(name);
+      const fallback = AUTHOR_FALLBACK_META[name] || {};
+      return {
+        name,
+        representativeWork: fallback.representative_work || meta.representative_work || "代表作情報なし",
+        aozoraUrl: fallback.aozora_url || meta.aozora_url || "",
+      };
+    })
+    .sort((a, b) => {
+      const left = orderMap.has(a.name) ? orderMap.get(a.name) : Number.MAX_SAFE_INTEGER;
+      const right = orderMap.has(b.name) ? orderMap.get(b.name) : Number.MAX_SAFE_INTEGER;
+      return left - right || a.name.localeCompare(b.name, "ja");
+    });
+
+  return items;
+}
+
+function renderAuthorPreview(items) {
+  authorPreviewListEl.replaceChildren();
+
+  items.forEach((item, index) => {
+    const card = document.createElement("article");
+    card.className = "author-preview-item";
+    card.style.setProperty("--delay", `${index * 40}ms`);
+
+    const name = document.createElement("p");
+    name.className = "author-preview-name";
+    name.textContent = item.name;
+
+    const work = document.createElement("p");
+    work.className = "author-preview-work";
+    work.textContent = `代表作: ${item.representativeWork}`;
+
+    card.append(name, work);
+
+    if (item.aozoraUrl) {
+      const link = document.createElement("a");
+      link.className = "author-preview-link";
+      link.href = item.aozoraUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "青空文庫";
+      card.append(link);
+    }
+
+    authorPreviewListEl.append(card);
+  });
+}
+
+async function handleSubmit(event) {
   event.preventDefault();
-  if (!modelReady || !modelBundle) {
+  if (!modelReady || !modelBundle || isJudging) {
     return;
   }
 
@@ -237,15 +419,83 @@ function handleSubmit(event) {
   }
 
   const topThree = ranking.slice(0, 3);
-  renderResult(topThree, ranking, {
-    preprocessedLength: preprocessedText.length,
-    featureCount: tfidfEntries.length,
-    tfidfEntries,
+
+  setJudgingState(true);
+  try {
+    await wait(980);
+    renderResult(topThree, ranking, {
+      rawText: userTextEl.value,
+      preprocessedLength: preprocessedText.length,
+      featureCount: tfidfEntries.length,
+      tfidfEntries,
+    });
+  } finally {
+    setJudgingState(false);
+  }
+}
+
+function setJudgingState(active) {
+  isJudging = active;
+  formEl.classList.toggle("is-judging", active);
+
+  if (active) {
+    judgeButtonEl.textContent = "文豪を召喚中";
+    suspenseStateEl.hidden = false;
+    suspenseMeterEl.hidden = false;
+    suspenseStateEl.classList.add("is-active");
+  } else {
+    judgeButtonEl.textContent = "文豪を判定する";
+    suspenseStateEl.hidden = true;
+    suspenseMeterEl.hidden = true;
+    suspenseStateEl.classList.remove("is-active");
+  }
+
+  updateLengthState();
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
   });
 }
 
+function getStopwords() {
+  const modelStopwords = modelBundle?.preprocessing?.stopwords;
+  if (Array.isArray(modelStopwords) && modelStopwords.length) {
+    return modelStopwords;
+  }
+  return DEFAULT_STOPWORDS;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildStopwordRegex(stopwords) {
+  const words = [...new Set(stopwords)]
+    .map((word) => String(word).trim())
+    .filter((word) => word.length > 0)
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp);
+
+  if (!words.length) {
+    return null;
+  }
+
+  return new RegExp(words.join("|"), "g");
+}
+
 function preprocessText(text) {
-  return text.normalize("NFKC").replace(/\s+/g, "");
+  let normalized = text.normalize("NFKC").replace(/\s+/g, "");
+  normalized = normalized.replace(/[「」『』（）()［］【】〈〉《》〔〕…・。、，．！？!?ー〜～:：;；"'`]/g, "");
+  normalized = normalized.replace(/[0-9０-９]+/g, "");
+
+  const stopwordRegex = buildStopwordRegex(getStopwords());
+  if (stopwordRegex) {
+    normalized = normalized.replace(stopwordRegex, "");
+  }
+
+  return normalized;
 }
 
 function vectorizeToTfidf(text, vectorizer) {
@@ -318,7 +568,7 @@ function classifyLogistic(tfidfEntries, classifier) {
         probability,
         classIndex,
         label: meta.label || "",
-        comment: meta.comment || "",
+        comment: meta.comment || `${authorName}の語りに近い文体傾向が見られます。`,
         representativeWork: meta.representative_work || "",
         aozoraUrl: meta.aozora_url || "",
       };
@@ -345,6 +595,7 @@ function renderResult(topThree, ranking, pipeline) {
   topThree.forEach((item, index) => {
     const row = document.createElement("article");
     row.className = "ranking-item";
+    row.style.animationDelay = `${index * 110}ms`;
 
     const head = document.createElement("div");
     head.className = "ranking-head";
@@ -388,6 +639,9 @@ function renderResult(topThree, ranking, pipeline) {
 
   analysisTextEl.textContent = buildAnalysisText(ranking, pipeline);
   resultPanelEl.hidden = false;
+  resultPanelEl.classList.remove("is-reveal");
+  void resultPanelEl.offsetWidth;
+  resultPanelEl.classList.add("is-reveal");
   resultPanelEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -395,14 +649,71 @@ function buildAnalysisText(ranking, pipeline) {
   const top = ranking[0];
   const second = ranking[1];
   const margin = second ? top.percent - second.percent : top.percent;
-  const accuracy = modelBundle?.evaluation?.accuracy;
-  const accuracyText = typeof accuracy === "number" ? `${(accuracy * 100).toFixed(1)}%` : "-";
   const topTokens = pickTopContributingTokens(top.classIndex, pipeline.tfidfEntries, 4);
-  const tokenText = topTokens.length
-    ? `寄与の大きい語感: ${topTokens.map((token) => `「${token}」`).join("、")}。`
-    : "寄与語は分散しており、特定の語感に偏りませんでした。";
+  const rhythm = summarizeWritingRhythm(pipeline.rawText || "");
 
-  return `評価済みモデル（Accuracy ${accuracyText}）を利用。前処理後 ${pipeline.preprocessedLength}文字、TF-IDF特徴量 ${pipeline.featureCount}次元で推定しました。1位と2位の差は ${margin.toFixed(1)}pt です。${tokenText}`;
+  const reasonByTokens = topTokens.length
+    ? `「${topTokens.join("」「")}」のような言い回しが、この文豪らしさとして強く反応しました。`
+    : "言い回しの特徴が全体に散らばっていました。";
+
+  const reasonByRhythm = `文の運びは${rhythm.tempoText}（${rhythm.sentenceCount}文 / 1文平均${rhythm.avgSentenceLength.toFixed(1)}字）で、${rhythm.perspectiveText}。${rhythm.emotionText}。`;
+
+  const reasonByComparison = second
+    ? describeGap(top.name, second.name, margin)
+    : `${top.name}に最も近い傾向が出ました。`;
+
+  return `判定理由は3つです。1) ${top.comment} 2) ${reasonByRhythm} 3) ${reasonByTokens} さらに、2位との比較では${reasonByComparison} 助詞などの共通語は除外して、内容に関わる言い回しを中心に比べています。`;
+}
+
+function summarizeWritingRhythm(text) {
+  const normalized = String(text || "").replace(/\s+/g, "");
+  const sentences = normalized
+    .split(/[。！？!?]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const sentenceCount = Math.max(1, sentences.length);
+  const charLength = Math.max(1, getCharLength(normalized));
+  const avgSentenceLength = charLength / sentenceCount;
+
+  let tempoText = "中くらいの長さの文が続くバランス型";
+  if (avgSentenceLength < 18) {
+    tempoText = "短めの文を重ねるテンポ型";
+  } else if (avgSentenceLength >= 34) {
+    tempoText = "長めの文でじっくり描写する型";
+  }
+
+  const firstPersonCount = (normalized.match(/私|わたし|僕|ぼく|俺|おれ|わし/g) || []).length;
+  const perspectiveText =
+    firstPersonCount >= 2
+      ? "一人称が多く、内面に寄った語り口です"
+      : "一人称は控えめで、情景や出来事を見せる語り口です";
+
+  const punctCount = (String(text || "").match(/[！？!?]/g) || []).length;
+  let emotionText = "感情表現は抑えめで、落ち着いた印象です";
+  if (punctCount >= 3) {
+    emotionText = "感嘆符・疑問符が多く、感情の波がはっきりしています";
+  } else if (punctCount >= 1) {
+    emotionText = "要所で感情を強める書き方が見られます";
+  }
+
+  return {
+    sentenceCount,
+    avgSentenceLength,
+    tempoText,
+    perspectiveText,
+    emotionText,
+  };
+}
+
+function describeGap(topName, secondName, margin) {
+  if (margin >= 15) {
+    return `${secondName}より${margin.toFixed(1)}pt高く、${topName}らしさがはっきり出ています。`;
+  }
+  if (margin >= 6) {
+    return `${secondName}より${margin.toFixed(1)}pt高く、${topName}がやや優勢です。`;
+  }
+  return `${secondName}との差は${margin.toFixed(1)}ptで僅差です。`;
 }
 
 function pickTopContributingTokens(classIndex, tfidfEntries, limit) {
@@ -468,7 +779,7 @@ function updateLengthState() {
     lengthOk = true;
   }
 
-  judgeButtonEl.disabled = !(lengthOk && modelReady);
+  judgeButtonEl.disabled = !(lengthOk && modelReady) || isJudging;
 }
 
 function getCharLength(text) {
