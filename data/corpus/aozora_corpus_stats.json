@@ -1,0 +1,923 @@
+{
+  "total_samples": 9145,
+  "author_count": 100,
+  "selected_authors": [
+    "宮本百合子",
+    "岸田国士",
+    "小川未明",
+    "野村胡堂",
+    "坂口安吾",
+    "芥川竜之介",
+    "豊島与志雄",
+    "牧野信一",
+    "寺田寅彦",
+    "中谷宇吉郎",
+    "宮沢賢治",
+    "太宰治",
+    "田中貢太郎",
+    "岡本綺堂",
+    "山本周五郎",
+    "折口信夫",
+    "泉鏡花",
+    "萩原朔太郎",
+    "北大路魯山人",
+    "海野十三",
+    "堀辰雄",
+    "夢野久作",
+    "田山花袋",
+    "坂本竜馬",
+    "中原中也",
+    "永井荷風",
+    "原民喜",
+    "岡本かの子",
+    "森鴎外",
+    "吉川英治",
+    "田山録弥",
+    "国枝史郎",
+    "新美南吉",
+    "与謝野晶子",
+    "今野大力",
+    "夏目漱石",
+    "江戸川乱歩",
+    "久生十蘭",
+    "伊藤野枝",
+    "菊池寛",
+    "佐藤垢石",
+    "長谷川時雨",
+    "村山籌子",
+    "上村松園",
+    "高村光雲",
+    "矢崎源九郎",
+    "佐藤春夫",
+    "石川啄木",
+    "楠山正雄",
+    "室生犀星",
+    "林芙美子",
+    "大町桂月",
+    "織田作之助",
+    "横光利一",
+    "正岡子規",
+    "小酒井不木",
+    "若山牧水",
+    "種田山頭火",
+    "柳田国男",
+    "桜間中庸",
+    "平林初之輔",
+    "神西清",
+    "戸坂潤",
+    "北原白秋",
+    "中井正一",
+    "グリムヴィルヘルム・カール",
+    "グリムヤーコプ・ルートヴィッヒ・カール",
+    "喜田貞吉",
+    "薄田泣菫",
+    "槙村浩",
+    "紫式部",
+    "島崎藤村",
+    "谷崎潤一郎",
+    "泉鏡太郎",
+    "幸田露伴",
+    "和辻哲郎",
+    "三好達治",
+    "竹内浩三",
+    "片山広子",
+    "木暮理太郎",
+    "佐々木味津三",
+    "有島武郎",
+    "森川義信",
+    "北村透谷",
+    "上田敏",
+    "富永太郎",
+    "中里介山",
+    "梶井基次郎",
+    "国木田独歩",
+    "高村光太郎",
+    "長塚節",
+    "斎藤茂吉",
+    "徳田秋声",
+    "アンデルセンハンス・クリスチャン",
+    "北条民雄",
+    "中野鈴子",
+    "福沢諭吉",
+    "樋口一葉",
+    "伊藤左千夫",
+    "三好十郎"
+  ],
+  "label_distribution": {
+    "薄田泣菫": 150,
+    "和辻哲郎": 142,
+    "夢野久作": 138,
+    "国枝史郎": 138,
+    "北条民雄": 133,
+    "山本周五郎": 131,
+    "宮沢賢治": 129,
+    "佐藤春夫": 129,
+    "若山牧水": 123,
+    "樋口一葉": 123,
+    "岸田国士": 122,
+    "宮本百合子": 121,
+    "紫式部": 117,
+    "原民喜": 113,
+    "岡本かの子": 111,
+    "伊藤左千夫": 111,
+    "国木田独歩": 109,
+    "牧野信一": 106,
+    "海野十三": 104,
+    "谷崎潤一郎": 104,
+    "佐々木味津三": 103,
+    "三好十郎": 102,
+    "楠山正雄": 100,
+    "斎藤茂吉": 100,
+    "徳田秋声": 100,
+    "北原白秋": 99,
+    "芥川竜之介": 98,
+    "林芙美子": 98,
+    "横光利一": 98,
+    "長塚節": 98,
+    "萩原朔太郎": 96,
+    "与謝野晶子": 96,
+    "佐藤垢石": 96,
+    "長谷川時雨": 96,
+    "久生十蘭": 95,
+    "有島武郎": 95,
+    "永井荷風": 93,
+    "江戸川乱歩": 93,
+    "平林初之輔": 92,
+    "神西清": 92,
+    "アンデルセンハンス・クリスチャン": 92,
+    "中原中也": 91,
+    "田山録弥": 90,
+    "島崎藤村": 90,
+    "織田作之助": 89,
+    "正岡子規": 88,
+    "伊藤野枝": 86,
+    "室生犀星": 86,
+    "木暮理太郎": 86,
+    "高村光太郎": 86,
+    "豊島与志雄": 85,
+    "小川未明": 84,
+    "矢崎源九郎": 84,
+    "グリムヴィルヘルム・カール": 84,
+    "グリムヤーコプ・ルートヴィッヒ・カール": 84,
+    "槙村浩": 84,
+    "三好達治": 84,
+    "北村透谷": 82,
+    "森鴎外": 81,
+    "吉川英治": 81,
+    "石川啄木": 81,
+    "野村胡堂": 80,
+    "寺田寅彦": 80,
+    "折口信夫": 80,
+    "夏目漱石": 80,
+    "種田山頭火": 80,
+    "柳田国男": 80,
+    "戸坂潤": 80,
+    "中井正一": 80,
+    "幸田露伴": 80,
+    "中里介山": 80,
+    "福沢諭吉": 80,
+    "堀辰雄": 79,
+    "坂口安吾": 78,
+    "中谷宇吉郎": 78,
+    "岡本綺堂": 78,
+    "泉鏡花": 78,
+    "田山花袋": 78,
+    "新美南吉": 78,
+    "喜田貞吉": 78,
+    "泉鏡太郎": 78,
+    "片山広子": 78,
+    "梶井基次郎": 78,
+    "北大路魯山人": 77,
+    "太宰治": 76,
+    "菊池寛": 76,
+    "上村松園": 76,
+    "大町桂月": 76,
+    "小酒井不木": 76,
+    "上田敏": 76,
+    "田中貢太郎": 75,
+    "坂本竜馬": 75,
+    "今野大力": 75,
+    "村山籌子": 75,
+    "高村光雲": 75,
+    "桜間中庸": 75,
+    "富永太郎": 75,
+    "竹内浩三": 60,
+    "中野鈴子": 59,
+    "森川義信": 37
+  },
+  "authors": {
+    "宮本百合子": {
+      "available_works": 1190,
+      "selected_works": 140,
+      "used_works": 4,
+      "chunks": 121,
+      "chars": 34727
+    },
+    "岸田国士": {
+      "available_works": 645,
+      "selected_works": 140,
+      "used_works": 3,
+      "chunks": 122,
+      "chars": 35496
+    },
+    "小川未明": {
+      "available_works": 619,
+      "selected_works": 140,
+      "used_works": 8,
+      "chunks": 84,
+      "chars": 24437
+    },
+    "野村胡堂": {
+      "available_works": 521,
+      "selected_works": 140,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 22255
+    },
+    "坂口安吾": {
+      "available_works": 513,
+      "selected_works": 140,
+      "used_works": 8,
+      "chunks": 78,
+      "chars": 21704
+    },
+    "芥川竜之介": {
+      "available_works": 378,
+      "selected_works": 140,
+      "used_works": 5,
+      "chunks": 98,
+      "chars": 28942
+    },
+    "豊島与志雄": {
+      "available_works": 353,
+      "selected_works": 140,
+      "used_works": 11,
+      "chunks": 85,
+      "chars": 23810
+    },
+    "牧野信一": {
+      "available_works": 343,
+      "selected_works": 140,
+      "used_works": 10,
+      "chunks": 106,
+      "chars": 28648
+    },
+    "寺田寅彦": {
+      "available_works": 304,
+      "selected_works": 140,
+      "used_works": 15,
+      "chunks": 80,
+      "chars": 22176
+    },
+    "中谷宇吉郎": {
+      "available_works": 302,
+      "selected_works": 140,
+      "used_works": 19,
+      "chunks": 78,
+      "chars": 21044
+    },
+    "宮沢賢治": {
+      "available_works": 277,
+      "selected_works": 140,
+      "used_works": 3,
+      "chunks": 129,
+      "chars": 37523
+    },
+    "太宰治": {
+      "available_works": 273,
+      "selected_works": 140,
+      "used_works": 24,
+      "chunks": 76,
+      "chars": 19978
+    },
+    "田中貢太郎": {
+      "available_works": 263,
+      "selected_works": 140,
+      "used_works": 5,
+      "chunks": 75,
+      "chars": 20886
+    },
+    "岡本綺堂": {
+      "available_works": 252,
+      "selected_works": 140,
+      "used_works": 3,
+      "chunks": 78,
+      "chars": 21908
+    },
+    "山本周五郎": {
+      "available_works": 252,
+      "selected_works": 140,
+      "used_works": 4,
+      "chunks": 131,
+      "chars": 36240
+    },
+    "折口信夫": {
+      "available_works": 234,
+      "selected_works": 140,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 23008
+    },
+    "泉鏡花": {
+      "available_works": 221,
+      "selected_works": 140,
+      "used_works": 5,
+      "chunks": 78,
+      "chars": 22009
+    },
+    "萩原朔太郎": {
+      "available_works": 194,
+      "selected_works": 140,
+      "used_works": 8,
+      "chunks": 96,
+      "chars": 28075
+    },
+    "北大路魯山人": {
+      "available_works": 185,
+      "selected_works": 140,
+      "used_works": 14,
+      "chunks": 77,
+      "chars": 21270
+    },
+    "海野十三": {
+      "available_works": 177,
+      "selected_works": 140,
+      "used_works": 5,
+      "chunks": 104,
+      "chars": 29896
+    },
+    "堀辰雄": {
+      "available_works": 162,
+      "selected_works": 140,
+      "used_works": 4,
+      "chunks": 79,
+      "chars": 21262
+    },
+    "夢野久作": {
+      "available_works": 157,
+      "selected_works": 140,
+      "used_works": 4,
+      "chunks": 138,
+      "chars": 39382
+    },
+    "田山花袋": {
+      "available_works": 153,
+      "selected_works": 140,
+      "used_works": 7,
+      "chunks": 78,
+      "chars": 22231
+    },
+    "坂本竜馬": {
+      "available_works": 151,
+      "selected_works": 140,
+      "used_works": 47,
+      "chunks": 75,
+      "chars": 17728
+    },
+    "中原中也": {
+      "available_works": 151,
+      "selected_works": 140,
+      "used_works": 36,
+      "chunks": 91,
+      "chars": 22995
+    },
+    "永井荷風": {
+      "available_works": 146,
+      "selected_works": 140,
+      "used_works": 5,
+      "chunks": 93,
+      "chars": 25691
+    },
+    "原民喜": {
+      "available_works": 145,
+      "selected_works": 140,
+      "used_works": 9,
+      "chunks": 113,
+      "chars": 32431
+    },
+    "岡本かの子": {
+      "available_works": 143,
+      "selected_works": 140,
+      "used_works": 6,
+      "chunks": 111,
+      "chars": 31844
+    },
+    "森鴎外": {
+      "available_works": 139,
+      "selected_works": 139,
+      "used_works": 3,
+      "chunks": 81,
+      "chars": 23780
+    },
+    "吉川英治": {
+      "available_works": 133,
+      "selected_works": 133,
+      "used_works": 2,
+      "chunks": 81,
+      "chars": 23631
+    },
+    "田山録弥": {
+      "available_works": 131,
+      "selected_works": 131,
+      "used_works": 8,
+      "chunks": 90,
+      "chars": 25456
+    },
+    "国枝史郎": {
+      "available_works": 126,
+      "selected_works": 126,
+      "used_works": 3,
+      "chunks": 138,
+      "chars": 40734
+    },
+    "新美南吉": {
+      "available_works": 125,
+      "selected_works": 125,
+      "used_works": 3,
+      "chunks": 78,
+      "chars": 23283
+    },
+    "与謝野晶子": {
+      "available_works": 121,
+      "selected_works": 121,
+      "used_works": 4,
+      "chunks": 96,
+      "chars": 27432
+    },
+    "今野大力": {
+      "available_works": 119,
+      "selected_works": 119,
+      "used_works": 53,
+      "chunks": 75,
+      "chars": 17915
+    },
+    "夏目漱石": {
+      "available_works": 112,
+      "selected_works": 112,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 23889
+    },
+    "江戸川乱歩": {
+      "available_works": 110,
+      "selected_works": 110,
+      "used_works": 2,
+      "chunks": 93,
+      "chars": 27625
+    },
+    "久生十蘭": {
+      "available_works": 109,
+      "selected_works": 109,
+      "used_works": 2,
+      "chunks": 95,
+      "chars": 26040
+    },
+    "伊藤野枝": {
+      "available_works": 104,
+      "selected_works": 104,
+      "used_works": 7,
+      "chunks": 86,
+      "chars": 24109
+    },
+    "菊池寛": {
+      "available_works": 100,
+      "selected_works": 100,
+      "used_works": 5,
+      "chunks": 76,
+      "chars": 21933
+    },
+    "佐藤垢石": {
+      "available_works": 99,
+      "selected_works": 99,
+      "used_works": 13,
+      "chunks": 96,
+      "chars": 27287
+    },
+    "長谷川時雨": {
+      "available_works": 89,
+      "selected_works": 89,
+      "used_works": 10,
+      "chunks": 96,
+      "chars": 26433
+    },
+    "村山籌子": {
+      "available_works": 84,
+      "selected_works": 84,
+      "used_works": 8,
+      "chunks": 75,
+      "chars": 21979
+    },
+    "上村松園": {
+      "available_works": 83,
+      "selected_works": 83,
+      "used_works": 12,
+      "chunks": 76,
+      "chars": 20714
+    },
+    "高村光雲": {
+      "available_works": 80,
+      "selected_works": 80,
+      "used_works": 4,
+      "chunks": 75,
+      "chars": 20409
+    },
+    "矢崎源九郎": {
+      "available_works": 80,
+      "selected_works": 80,
+      "used_works": 6,
+      "chunks": 84,
+      "chars": 24723
+    },
+    "佐藤春夫": {
+      "available_works": 79,
+      "selected_works": 79,
+      "used_works": 5,
+      "chunks": 129,
+      "chars": 36597
+    },
+    "石川啄木": {
+      "available_works": 78,
+      "selected_works": 78,
+      "used_works": 2,
+      "chunks": 81,
+      "chars": 23290
+    },
+    "楠山正雄": {
+      "available_works": 76,
+      "selected_works": 76,
+      "used_works": 3,
+      "chunks": 100,
+      "chars": 29285
+    },
+    "室生犀星": {
+      "available_works": 74,
+      "selected_works": 74,
+      "used_works": 2,
+      "chunks": 86,
+      "chars": 23319
+    },
+    "林芙美子": {
+      "available_works": 72,
+      "selected_works": 72,
+      "used_works": 3,
+      "chunks": 98,
+      "chars": 27789
+    },
+    "大町桂月": {
+      "available_works": 72,
+      "selected_works": 72,
+      "used_works": 4,
+      "chunks": 76,
+      "chars": 22426
+    },
+    "織田作之助": {
+      "available_works": 71,
+      "selected_works": 71,
+      "used_works": 2,
+      "chunks": 89,
+      "chars": 26669
+    },
+    "横光利一": {
+      "available_works": 71,
+      "selected_works": 71,
+      "used_works": 4,
+      "chunks": 98,
+      "chars": 28967
+    },
+    "正岡子規": {
+      "available_works": 70,
+      "selected_works": 70,
+      "used_works": 3,
+      "chunks": 88,
+      "chars": 24742
+    },
+    "小酒井不木": {
+      "available_works": 69,
+      "selected_works": 69,
+      "used_works": 1,
+      "chunks": 76,
+      "chars": 21514
+    },
+    "若山牧水": {
+      "available_works": 68,
+      "selected_works": 68,
+      "used_works": 4,
+      "chunks": 123,
+      "chars": 35973
+    },
+    "種田山頭火": {
+      "available_works": 68,
+      "selected_works": 68,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 23099
+    },
+    "柳田国男": {
+      "available_works": 67,
+      "selected_works": 67,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 23294
+    },
+    "桜間中庸": {
+      "available_works": 66,
+      "selected_works": 66,
+      "used_works": 39,
+      "chunks": 75,
+      "chars": 17329
+    },
+    "平林初之輔": {
+      "available_works": 66,
+      "selected_works": 66,
+      "used_works": 3,
+      "chunks": 92,
+      "chars": 26310
+    },
+    "神西清": {
+      "available_works": 65,
+      "selected_works": 65,
+      "used_works": 2,
+      "chunks": 92,
+      "chars": 26894
+    },
+    "戸坂潤": {
+      "available_works": 63,
+      "selected_works": 63,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 22953
+    },
+    "北原白秋": {
+      "available_works": 63,
+      "selected_works": 63,
+      "used_works": 4,
+      "chunks": 99,
+      "chars": 41069
+    },
+    "中井正一": {
+      "available_works": 63,
+      "selected_works": 63,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 22353
+    },
+    "グリムヴィルヘルム・カール": {
+      "available_works": 63,
+      "selected_works": 63,
+      "used_works": 8,
+      "chunks": 84,
+      "chars": 24856
+    },
+    "グリムヤーコプ・ルートヴィッヒ・カール": {
+      "available_works": 63,
+      "selected_works": 63,
+      "used_works": 8,
+      "chunks": 84,
+      "chars": 24856
+    },
+    "喜田貞吉": {
+      "available_works": 62,
+      "selected_works": 62,
+      "used_works": 4,
+      "chunks": 78,
+      "chars": 21651
+    },
+    "薄田泣菫": {
+      "available_works": 58,
+      "selected_works": 58,
+      "used_works": 2,
+      "chunks": 150,
+      "chars": 43477
+    },
+    "槙村浩": {
+      "available_works": 58,
+      "selected_works": 58,
+      "used_works": 20,
+      "chunks": 84,
+      "chars": 24197
+    },
+    "紫式部": {
+      "available_works": 56,
+      "selected_works": 56,
+      "used_works": 2,
+      "chunks": 117,
+      "chars": 31961
+    },
+    "島崎藤村": {
+      "available_works": 56,
+      "selected_works": 56,
+      "used_works": 2,
+      "chunks": 90,
+      "chars": 26150
+    },
+    "谷崎潤一郎": {
+      "available_works": 55,
+      "selected_works": 55,
+      "used_works": 3,
+      "chunks": 104,
+      "chars": 29850
+    },
+    "泉鏡太郎": {
+      "available_works": 54,
+      "selected_works": 54,
+      "used_works": 5,
+      "chunks": 78,
+      "chars": 22009
+    },
+    "幸田露伴": {
+      "available_works": 54,
+      "selected_works": 54,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 22088
+    },
+    "和辻哲郎": {
+      "available_works": 54,
+      "selected_works": 54,
+      "used_works": 3,
+      "chunks": 142,
+      "chars": 39932
+    },
+    "三好達治": {
+      "available_works": 54,
+      "selected_works": 54,
+      "used_works": 8,
+      "chunks": 84,
+      "chars": 41579
+    },
+    "竹内浩三": {
+      "available_works": 53,
+      "selected_works": 53,
+      "used_works": 49,
+      "chunks": 60,
+      "chars": 13035
+    },
+    "片山広子": {
+      "available_works": 53,
+      "selected_works": 53,
+      "used_works": 10,
+      "chunks": 78,
+      "chars": 21330
+    },
+    "木暮理太郎": {
+      "available_works": 53,
+      "selected_works": 53,
+      "used_works": 4,
+      "chunks": 86,
+      "chars": 24226
+    },
+    "佐々木味津三": {
+      "available_works": 53,
+      "selected_works": 53,
+      "used_works": 2,
+      "chunks": 103,
+      "chars": 29755
+    },
+    "有島武郎": {
+      "available_works": 52,
+      "selected_works": 52,
+      "used_works": 2,
+      "chunks": 95,
+      "chars": 27687
+    },
+    "森川義信": {
+      "available_works": 51,
+      "selected_works": 51,
+      "used_works": 35,
+      "chunks": 37,
+      "chars": 7345
+    },
+    "北村透谷": {
+      "available_works": 50,
+      "selected_works": 50,
+      "used_works": 6,
+      "chunks": 82,
+      "chars": 22612
+    },
+    "上田敏": {
+      "available_works": 50,
+      "selected_works": 50,
+      "used_works": 34,
+      "chunks": 76,
+      "chars": 20049
+    },
+    "富永太郎": {
+      "available_works": 49,
+      "selected_works": 49,
+      "used_works": 39,
+      "chunks": 75,
+      "chars": 18765
+    },
+    "中里介山": {
+      "available_works": 48,
+      "selected_works": 48,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 22883
+    },
+    "梶井基次郎": {
+      "available_works": 47,
+      "selected_works": 47,
+      "used_works": 7,
+      "chunks": 78,
+      "chars": 22762
+    },
+    "国木田独歩": {
+      "available_works": 47,
+      "selected_works": 47,
+      "used_works": 3,
+      "chunks": 109,
+      "chars": 30632
+    },
+    "高村光太郎": {
+      "available_works": 46,
+      "selected_works": 46,
+      "used_works": 18,
+      "chunks": 86,
+      "chars": 25210
+    },
+    "長塚節": {
+      "available_works": 46,
+      "selected_works": 46,
+      "used_works": 7,
+      "chunks": 98,
+      "chars": 28488
+    },
+    "斎藤茂吉": {
+      "available_works": 46,
+      "selected_works": 46,
+      "used_works": 7,
+      "chunks": 100,
+      "chars": 37059
+    },
+    "徳田秋声": {
+      "available_works": 46,
+      "selected_works": 46,
+      "used_works": 5,
+      "chunks": 100,
+      "chars": 28720
+    },
+    "アンデルセンハンス・クリスチャン": {
+      "available_works": 46,
+      "selected_works": 46,
+      "used_works": 5,
+      "chunks": 92,
+      "chars": 27572
+    },
+    "北条民雄": {
+      "available_works": 45,
+      "selected_works": 45,
+      "used_works": 11,
+      "chunks": 133,
+      "chars": 37436
+    },
+    "中野鈴子": {
+      "available_works": 44,
+      "selected_works": 44,
+      "used_works": 38,
+      "chunks": 59,
+      "chars": 15601
+    },
+    "福沢諭吉": {
+      "available_works": 43,
+      "selected_works": 43,
+      "used_works": 1,
+      "chunks": 80,
+      "chars": 21855
+    },
+    "樋口一葉": {
+      "available_works": 43,
+      "selected_works": 43,
+      "used_works": 3,
+      "chunks": 123,
+      "chars": 42090
+    },
+    "伊藤左千夫": {
+      "available_works": 43,
+      "selected_works": 43,
+      "used_works": 3,
+      "chunks": 111,
+      "chars": 34317
+    },
+    "三好十郎": {
+      "available_works": 43,
+      "selected_works": 43,
+      "used_works": 6,
+      "chunks": 102,
+      "chars": 29850
+    }
+  },
+  "params": {
+    "author_count": 100,
+    "min_works": 30,
+    "works_per_author": 140,
+    "target_chunks_per_author": 75,
+    "min_chars": 100,
+    "max_chars": 320,
+    "max_chunks_per_work": 80
+  },
+  "source": {
+    "metadata_zip": "data/corpus/list_person_all_extended_utf8.zip",
+    "metadata_url": "https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip"
+  }
+}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文豪スタイル判定</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="background-orb orb-1"></div>
+    <div class="background-orb orb-2"></div>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">AIMathBook CHAPTER 6 Inspired</p>
+        <h1>文豪スタイル判定アプリ</h1>
+        <p class="lead">
+          文章を入力すると、どの文豪の文体に近いかを推定します。<br />
+          フォームでお題と文字数を指定して、気軽に試せます。
+        </p>
+      </header>
+
+      <section class="panel">
+        <h2>入力フォーム</h2>
+        <p id="model-status" class="model-status">学習済みモデルを読み込み中...</p>
+        <form id="judge-form" novalidate>
+          <div class="field">
+            <label for="theme-select">作文テーマ</label>
+            <select id="theme-select" name="theme"></select>
+            <p id="theme-prompt" class="theme-prompt"></p>
+            <p class="range-note">推奨文字数: <span id="range-text"></span></p>
+          </div>
+
+          <div class="field">
+            <label for="user-text">あなたの文章</label>
+            <textarea
+              id="user-text"
+              name="userText"
+              rows="10"
+              maxlength="600"
+              placeholder="ここに文章を入力してください。"
+              required
+            ></textarea>
+            <div class="text-meta">
+              <p id="char-count">0字</p>
+              <p id="length-status" class="length-status is-short">文字数不足</p>
+            </div>
+          </div>
+
+          <button id="judge-button" type="submit" disabled>文豪を判定する</button>
+        </form>
+      </section>
+
+      <section class="panel result-panel" id="result-panel" hidden>
+        <h2>判定結果</h2>
+        <div class="top-result">
+          <p class="rank-chip">最も近い文体</p>
+          <p id="top-author" class="top-author">-</p>
+          <p id="top-score" class="top-score">-</p>
+          <p id="top-work" class="top-work"></p>
+          <a id="top-link" class="top-link" href="#" target="_blank" rel="noopener noreferrer" hidden>青空文庫ページ</a>
+          <p id="top-comment" class="top-comment"></p>
+        </div>
+        <div id="ranking-list" class="ranking-list"></div>
+        <div class="analysis-block">
+          <h3>分析メモ</h3>
+          <p id="analysis-text"></p>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        <p>
+          青空文庫コーパスから学習・評価したモデルを読み込み、前処理→TF-IDF特徴量→ロジスティック回帰で推定します。
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
