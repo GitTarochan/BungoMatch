@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=20260224-2" defer></script>
+    <script src="app.js?v=20260224-3" defer></script>
   </head>
   <body>
     <div class="background-orb orb-1"></div>
@@ -29,10 +29,6 @@
       <section class="panel">
         <h2>入力フォーム</h2>
         <p id="model-status" class="model-status">学習済みモデルを読み込み中...</p>
-        <div class="candidate-showcase">
-          <h3>今回の判定候補（有名文豪10人）</h3>
-          <div id="author-preview-list" class="author-preview-list"></div>
-        </div>
         <form id="judge-form" novalidate>
           <div class="field">
             <label for="theme-select">作文テーマ</label>
@@ -56,6 +52,12 @@
               <p id="length-status" class="length-status is-short">文字数不足</p>
             </div>
           </div>
+
+          <section class="candidate-showcase candidate-showcase-after">
+            <h3>今回の判定候補（有名文豪10人）</h3>
+            <p class="candidate-note">候補カードを左右にスワイプして、代表作をチェックできます。</p>
+            <div id="author-preview-list" class="author-preview-list"></div>
+          </section>
 
           <button id="judge-button" type="submit" disabled>文豪を判定する</button>
           <p id="suspense-state" class="suspense-state" hidden aria-live="polite">判定中</p>
