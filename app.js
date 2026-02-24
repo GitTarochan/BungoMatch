@@ -662,7 +662,7 @@ function buildAnalysisText(ranking, pipeline) {
     ? describeGap(top.name, second.name, margin)
     : `${top.name}に最も近い傾向が出ました。`;
 
-  return `判定理由は3つです。1) ${top.comment} 2) ${reasonByRhythm} 3) ${reasonByTokens} さらに、2位との比較では${reasonByComparison} 助詞などの共通語は除外して、内容に関わる言い回しを中心に比べています。`;
+  return `判定理由は2つです。1) ${reasonByRhythm} 2) ${reasonByTokens} さらに、2位との比較では${reasonByComparison} 助詞などの共通語は除外して、内容に関わる言い回しを中心に比べています。`;
 }
 
 function summarizeWritingRhythm(text) {
