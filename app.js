@@ -181,9 +181,6 @@ const DEFAULT_STOPWORDS = [
 
 const MODEL_PATH = "./models/author_style_web_model.json";
 const LENGTH_CLASSES = ["is-short", "is-good", "is-long"];
-const SHARE_HASH_KEY = "share";
-const SHARE_VERSION = 1;
-const SHARE_TEXT_PREVIEW_LIMIT = 150;
 
 const formEl = document.getElementById("judge-form");
 const themeSelectEl = document.getElementById("theme-select");
@@ -205,22 +202,11 @@ const modelStatusEl = document.getElementById("model-status");
 const authorPreviewListEl = document.getElementById("author-preview-list");
 const suspenseStateEl = document.getElementById("suspense-state");
 const suspenseMeterEl = document.getElementById("suspense-meter");
-const sharePanelEl = document.getElementById("share-panel");
-const shareThemeEl = document.getElementById("share-theme");
-const shareWinnerEl = document.getElementById("share-winner");
-const shareSummaryEl = document.getElementById("share-summary");
-const shareTextPreviewEl = document.getElementById("share-text-preview");
-const shareTop3El = document.getElementById("share-top3");
-const shareStatusEl = document.getElementById("share-status");
-const shareNativeButtonEl = document.getElementById("share-native-button");
-const shareLinkButtonEl = document.getElementById("share-link-button");
-const shareTextButtonEl = document.getElementById("share-text-button");
 
 let currentTheme = THEMES[0];
 let modelBundle = null;
 let modelReady = false;
 let isJudging = false;
-let latestSharePayload = null;
 
 init();
 
@@ -228,7 +214,6 @@ async function init() {
   renderThemeOptions();
   applyTheme(currentTheme.id);
   renderAuthorPreview(getFallbackPreviewAuthors());
-  setupShareActions();
 
   themeSelectEl.addEventListener("change", () => {
     applyTheme(themeSelectEl.value);
@@ -239,11 +224,6 @@ async function init() {
   formEl.addEventListener("submit", handleSubmit);
 
   updateLengthState();
-  const sharedPayload = readSharePayloadFromLocation();
-  if (sharedPayload) {
-    applySharedPayloadToInput(sharedPayload);
-    renderSharedResult(sharedPayload);
-  }
   await loadTrainedModel();
 }
 
@@ -346,274 +326,6 @@ function setModelStatus(text, variant) {
   }
 }
 
-function setupShareActions() {
-  if (!shareNativeButtonEl || !shareLinkButtonEl || !shareTextButtonEl) {
-    return;
-  }
-
-  shareNativeButtonEl.addEventListener("click", handleShareNative);
-  shareLinkButtonEl.addEventListener("click", handleShareLinkCopy);
-  shareTextButtonEl.addEventListener("click", handleShareTextCopy);
-}
-
-function setShareStatus(text, variant = "") {
-  if (!shareStatusEl) {
-    return;
-  }
-  shareStatusEl.textContent = text;
-  shareStatusEl.classList.remove("is-error", "is-success");
-  if (variant === "error") {
-    shareStatusEl.classList.add("is-error");
-  }
-  if (variant === "success") {
-    shareStatusEl.classList.add("is-success");
-  }
-}
-
-function applySharedPayloadToInput(payload) {
-  if (payload.themeId) {
-    applyTheme(payload.themeId);
-  }
-  if (typeof payload.text === "string") {
-    userTextEl.value = payload.text;
-  }
-  updateLengthState();
-}
-
-function readSharePayloadFromLocation() {
-  const hash = window.location.hash.replace(/^#/, "");
-  if (!hash) {
-    return null;
-  }
-  const [key, encoded] = hash.split("=");
-  if (key !== SHARE_HASH_KEY || !encoded) {
-    return null;
-  }
-  try {
-    const decoded = decodeBase64Url(encoded);
-    const payload = JSON.parse(decoded);
-    if (!isValidSharePayload(payload)) {
-      return null;
-    }
-    return payload;
-  } catch (error) {
-    console.error("share payload decode failed", error);
-    return null;
-  }
-}
-
-function isValidSharePayload(payload) {
-  if (!payload || typeof payload !== "object") {
-    return false;
-  }
-  if (!Array.isArray(payload.topThree) || payload.topThree.length < 1) {
-    return false;
-  }
-  const validRanking = payload.topThree.every((item) =>
-    item &&
-    typeof item.name === "string" &&
-    typeof item.percent === "number" &&
-    Number.isFinite(item.percent)
-  );
-  return validRanking;
-}
-
-function encodeBase64Url(text) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function decodeBase64Url(encoded) {
-  const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
-  const padSize = (4 - (base64.length % 4)) % 4;
-  const padded = base64 + "=".repeat(padSize);
-  const binary = atob(padded);
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-function createSharePayload(topThree, rawText, analysisText) {
-  return {
-    version: SHARE_VERSION,
-    themeId: currentTheme.id,
-    themeLabel: currentTheme.label,
-    text: rawText,
-    analysis: analysisText,
-    topThree: topThree.map((item) => ({
-      name: item.name,
-      percent: Number(item.percent.toFixed(1)),
-      representativeWork: item.representativeWork || "",
-      aozoraUrl: item.aozoraUrl || "",
-    })),
-    createdAt: new Date().toISOString(),
-  };
-}
-
-function buildShareUrl(payload) {
-  const encoded = encodeBase64Url(JSON.stringify(payload));
-  const base = `${window.location.origin}${window.location.pathname}`;
-  return `${base}#${SHARE_HASH_KEY}=${encoded}`;
-}
-
-function buildShareText(payload, shareUrl) {
-  const topThree = payload.topThree
-    .map((item, index) => `${index + 1}位 ${item.name} ${item.percent.toFixed(1)}%`)
-    .join("\n");
-  return [
-    "文豪スタイル判定の結果をシェアします。",
-    `テーマ: ${payload.themeLabel || "-"}`,
-    "",
-    "あなたの文章:",
-    payload.text,
-    "",
-    "判定TOP3:",
-    topThree,
-    "",
-    `分析メモ: ${payload.analysis || ""}`,
-    "",
-    shareUrl,
-  ].join("\n");
-}
-
-function trimPreviewText(text) {
-  const normalized = String(text || "").trim();
-  if (normalized.length <= SHARE_TEXT_PREVIEW_LIMIT) {
-    return normalized;
-  }
-  return `${normalized.slice(0, SHARE_TEXT_PREVIEW_LIMIT)}…`;
-}
-
-function renderSharePanel(payload) {
-  latestSharePayload = payload;
-  if (!sharePanelEl) {
-    return;
-  }
-
-  const winner = payload.topThree[0];
-  shareThemeEl.textContent = `テーマ: ${payload.themeLabel || "自由テーマ"}`;
-  shareWinnerEl.textContent = `似ている文豪: ${winner.name}`;
-  shareSummaryEl.textContent = `1位 ${winner.percent.toFixed(1)}% ・ 2位 ${payload.topThree[1]?.name || "-"} ${payload.topThree[1]?.percent?.toFixed(1) || "-"}%`;
-  shareTextPreviewEl.textContent = trimPreviewText(payload.text || "");
-
-  shareTop3El.replaceChildren();
-  payload.topThree.forEach((item, index) => {
-    const chip = document.createElement("p");
-    chip.className = "share-rank-chip";
-    chip.textContent = `${index + 1}位 ${item.name} ${item.percent.toFixed(1)}%`;
-    shareTop3El.append(chip);
-  });
-
-  setShareStatus("シェアボタンで友だちに送れます。");
-  sharePanelEl.hidden = false;
-}
-
-function renderSharedResult(payload) {
-  const ranking = payload.topThree.slice(0, 3).map((item, index) => {
-    const meta = getAuthorMeta(item.name);
-    return {
-      name: item.name,
-      percent: item.percent,
-      representativeWork: item.representativeWork || meta.representative_work || "",
-      aozoraUrl: item.aozoraUrl || meta.aozora_url || "",
-      comment: meta.comment || "",
-      classIndex: index,
-    };
-  });
-  const winner = ranking[0];
-  topAuthorEl.textContent = winner.name;
-  topScoreEl.textContent = `推定確率 ${winner.percent.toFixed(1)}%`;
-  topCommentEl.textContent = winner.comment;
-  topWorkEl.textContent = winner.representativeWork ? `代表作: ${winner.representativeWork}` : "代表作: 情報なし";
-  if (winner.aozoraUrl) {
-    topLinkEl.hidden = false;
-    topLinkEl.href = winner.aozoraUrl;
-  } else {
-    topLinkEl.hidden = true;
-    topLinkEl.removeAttribute("href");
-  }
-  renderRankingItems(ranking);
-  analysisTextEl.textContent = payload.analysis || "共有された判定結果です。";
-  renderSharePanel(payload);
-  resultPanelEl.hidden = false;
-  resultPanelEl.classList.add("is-reveal");
-}
-
-async function copyToClipboard(text) {
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch (error) {
-    console.error(error);
-  }
-
-  const area = document.createElement("textarea");
-  area.value = text;
-  area.setAttribute("readonly", "");
-  area.style.position = "absolute";
-  area.style.left = "-9999px";
-  document.body.append(area);
-  area.select();
-  const succeeded = document.execCommand("copy");
-  document.body.removeChild(area);
-  return succeeded;
-}
-
-async function handleShareNative() {
-  if (!latestSharePayload) {
-    setShareStatus("先に判定を実行してください。", "error");
-    return;
-  }
-  const shareUrl = buildShareUrl(latestSharePayload);
-  const winner = latestSharePayload.topThree[0];
-  const text = `私の文体は「${winner.name}」に近い結果でした（${winner.percent.toFixed(1)}%）。`;
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "文豪スタイル判定の結果",
-        text,
-        url: shareUrl,
-      });
-      setShareStatus("共有できました。", "success");
-      return;
-    } catch (error) {
-      if (error && error.name === "AbortError") {
-        setShareStatus("共有はキャンセルされました。");
-        return;
-      }
-      console.error(error);
-    }
-  }
-
-  const copied = await copyToClipboard(shareUrl);
-  setShareStatus(copied ? "共有機能が使えないため、リンクをコピーしました。" : "リンクコピーに失敗しました。", copied ? "success" : "error");
-}
-
-async function handleShareLinkCopy() {
-  if (!latestSharePayload) {
-    setShareStatus("先に判定を実行してください。", "error");
-    return;
-  }
-  const shareUrl = buildShareUrl(latestSharePayload);
-  const copied = await copyToClipboard(shareUrl);
-  setShareStatus(copied ? "共有リンクをコピーしました。" : "リンクのコピーに失敗しました。", copied ? "success" : "error");
-}
-
-async function handleShareTextCopy() {
-  if (!latestSharePayload) {
-    setShareStatus("先に判定を実行してください。", "error");
-    return;
-  }
-  const shareUrl = buildShareUrl(latestSharePayload);
-  const copied = await copyToClipboard(buildShareText(latestSharePayload, shareUrl));
-  setShareStatus(copied ? "共有用テキストをコピーしました。" : "テキストのコピーに失敗しました。", copied ? "success" : "error");
-}
 
 function getFallbackPreviewAuthors() {
   return TOP10_FAMOUS_AUTHORS.map((name) => {
@@ -883,7 +595,6 @@ function renderResult(topThree, ranking, pipeline) {
   renderRankingItems(topThree);
   const analysisText = buildAnalysisText(ranking, pipeline);
   analysisTextEl.textContent = analysisText;
-  renderSharePanel(createSharePayload(topThree, pipeline.rawText || "", analysisText));
   resultPanelEl.hidden = false;
   resultPanelEl.classList.remove("is-reveal");
   void resultPanelEl.offsetWidth;
