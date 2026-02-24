@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>文豪スタイル判定</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=20260224-3" defer></script>
+    <script src="app.js?v=20260224-5" defer></script>
   </head>
   <body>
     <div class="background-orb orb-1"></div>
@@ -81,6 +81,26 @@
         <div class="analysis-block">
           <h3>分析メモ</h3>
           <p id="analysis-text"></p>
+        </div>
+        <div id="share-panel" class="share-panel" hidden>
+          <div class="share-head">
+            <h3>友だちにシェア</h3>
+            <p>入力した文章と判定結果を、そのまま共有できます。</p>
+          </div>
+          <article id="share-card" class="share-card">
+            <p class="share-chip">BungoMatch</p>
+            <p id="share-theme" class="share-theme">テーマ: -</p>
+            <p id="share-winner" class="share-winner">-</p>
+            <p id="share-summary" class="share-summary">-</p>
+            <p id="share-text-preview" class="share-text-preview">-</p>
+            <div id="share-top3" class="share-top3"></div>
+          </article>
+          <div class="share-actions">
+            <button id="share-native-button" type="button" class="share-btn share-btn-primary">シェアする</button>
+            <button id="share-link-button" type="button" class="share-btn">リンクをコピー</button>
+            <button id="share-text-button" type="button" class="share-btn">結果文をコピー</button>
+          </div>
+          <p id="share-status" class="share-status" aria-live="polite"></p>
         </div>
       </section>
 
