@@ -1,9 +1,7 @@
 {
-  "source_csv": "data/corpus/aozora_corpus.csv",
-  "output_csv": "data/corpus/aozora_corpus_top10.csv",
+  "total_samples": 1271,
   "author_count": 10,
-  "total_samples": 958,
-  "authors": [
+  "selected_authors": [
     "夏目漱石",
     "太宰治",
     "芥川竜之介",
@@ -16,15 +14,101 @@
     "泉鏡花"
   ],
   "label_distribution": {
-    "夏目漱石": 80,
-    "太宰治": 76,
-    "芥川竜之介": 98,
-    "宮沢賢治": 129,
-    "森鴎外": 81,
-    "樋口一葉": 123,
-    "谷崎潤一郎": 104,
-    "江戸川乱歩": 93,
-    "与謝野晶子": 96,
-    "泉鏡花": 78
+    "泉鏡花": 149,
+    "谷崎潤一郎": 148,
+    "与謝野晶子": 148,
+    "樋口一葉": 144,
+    "江戸川乱歩": 144,
+    "芥川竜之介": 143,
+    "森鴎外": 143,
+    "夏目漱石": 140,
+    "宮沢賢治": 77,
+    "太宰治": 35
+  },
+  "authors": {
+    "夏目漱石": {
+      "available_works": 112,
+      "selected_works": 20,
+      "used_works": 16,
+      "chunks": 140,
+      "chars": 44029
+    },
+    "太宰治": {
+      "available_works": 273,
+      "selected_works": 20,
+      "used_works": 18,
+      "chunks": 35,
+      "chars": 10404
+    },
+    "芥川竜之介": {
+      "available_works": 378,
+      "selected_works": 20,
+      "used_works": 17,
+      "chunks": 143,
+      "chars": 45008
+    },
+    "宮沢賢治": {
+      "available_works": 277,
+      "selected_works": 20,
+      "used_works": 10,
+      "chunks": 77,
+      "chars": 24401
+    },
+    "森鴎外": {
+      "available_works": 139,
+      "selected_works": 20,
+      "used_works": 12,
+      "chunks": 143,
+      "chars": 44676
+    },
+    "樋口一葉": {
+      "available_works": 43,
+      "selected_works": 20,
+      "used_works": 12,
+      "chunks": 144,
+      "chars": 73488
+    },
+    "谷崎潤一郎": {
+      "available_works": 55,
+      "selected_works": 20,
+      "used_works": 13,
+      "chunks": 148,
+      "chars": 45317
+    },
+    "江戸川乱歩": {
+      "available_works": 110,
+      "selected_works": 20,
+      "used_works": 12,
+      "chunks": 144,
+      "chars": 44519
+    },
+    "与謝野晶子": {
+      "available_works": 121,
+      "selected_works": 20,
+      "used_works": 15,
+      "chunks": 148,
+      "chars": 44570
+    },
+    "泉鏡花": {
+      "available_works": 221,
+      "selected_works": 20,
+      "used_works": 13,
+      "chunks": 149,
+      "chars": 45166
+    }
+  },
+  "params": {
+    "author_count": 10,
+    "min_works": 10,
+    "works_per_author": 20,
+    "target_chunks_per_author": 140,
+    "min_chars": 160,
+    "max_chars": 340,
+    "max_chunks_per_work": 12,
+    "min_used_works": 12
+  },
+  "source": {
+    "metadata_zip": "data/corpus/list_person_all_extended_utf8.zip",
+    "metadata_url": "https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip"
   }
 }

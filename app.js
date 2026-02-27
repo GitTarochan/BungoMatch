@@ -202,6 +202,7 @@ const modelStatusEl = document.getElementById("model-status");
 const authorPreviewListEl = document.getElementById("author-preview-list");
 const suspenseStateEl = document.getElementById("suspense-state");
 const suspenseMeterEl = document.getElementById("suspense-meter");
+const topResultEl = document.querySelector(".top-result");
 
 let currentTheme = THEMES[0];
 let modelBundle = null;
@@ -279,7 +280,15 @@ async function loadTrainedModel() {
     const accuracy = payload.evaluation && typeof payload.evaluation.accuracy === "number"
       ? `${(payload.evaluation.accuracy * 100).toFixed(1)}%`
       : "-";
-    setModelStatus(`学習済みモデル読込済み（著者数: ${classCount} / 評価Accuracy: ${accuracy}）`, "ready");
+    const macroF1 = payload.evaluation && typeof payload.evaluation.macro_f1 === "number"
+      ? `${(payload.evaluation.macro_f1 * 100).toFixed(1)}%`
+      : "-";
+    const splitMethod = payload.evaluation?.work_split?.method ? "作品単位評価" : "ランダム評価";
+
+    setModelStatus(
+      `学習済みモデル読込済み（著者数: ${classCount} / Accuracy: ${accuracy} / Macro-F1: ${macroF1} / ${splitMethod}）`,
+      "ready"
+    );
     renderAuthorPreview(getPreviewAuthors(payload));
   } catch (error) {
     modelReady = false;
@@ -295,21 +304,26 @@ function validateModelPayload(payload) {
     throw new Error("invalid model payload");
   }
 
-  if (!payload.vectorizer || !payload.classifier) {
-    throw new Error("missing vectorizer/classifier");
-  }
-
-  const hasRequiredVectorizer =
+  const hasLegacyVectorizer =
+    payload.vectorizer &&
     payload.vectorizer.vocabulary &&
     Array.isArray(payload.vectorizer.idf) &&
     Array.isArray(payload.vectorizer.ngram_range);
 
+  const hasCompositeVectorizers =
+    payload.vectorizers &&
+    payload.vectorizers.char &&
+    payload.vectorizers.char.vocabulary &&
+    Array.isArray(payload.vectorizers.char.idf) &&
+    Array.isArray(payload.vectorizers.char.ngram_range);
+
   const hasRequiredClassifier =
+    payload.classifier &&
     Array.isArray(payload.classifier.classes) &&
     Array.isArray(payload.classifier.coef) &&
     Array.isArray(payload.classifier.intercept);
 
-  if (!hasRequiredVectorizer || !hasRequiredClassifier) {
+  if (!(hasLegacyVectorizer || hasCompositeVectorizers) || !hasRequiredClassifier) {
     throw new Error("model payload schema mismatch");
   }
 }
@@ -325,7 +339,6 @@ function setModelStatus(text, variant) {
     modelStatusEl.classList.add("is-error");
   }
 }
-
 
 function getFallbackPreviewAuthors() {
   return TOP10_FAMOUS_AUTHORS.map((name) => {
@@ -345,7 +358,7 @@ function getPreviewAuthors(payload) {
   }
 
   const orderMap = new Map(TOP10_FAMOUS_AUTHORS.map((name, idx) => [name, idx]));
-  const items = classes
+  return classes
     .map((name) => {
       const meta = getAuthorMeta(name);
       const fallback = AUTHOR_FALLBACK_META[name] || {};
@@ -360,8 +373,6 @@ function getPreviewAuthors(payload) {
       const right = orderMap.has(b.name) ? orderMap.get(b.name) : Number.MAX_SAFE_INTEGER;
       return left - right || a.name.localeCompare(b.name, "ja");
     });
-
-  return items;
 }
 
 function renderAuthorPreview(items) {
@@ -407,29 +418,24 @@ async function handleSubmit(event) {
     return;
   }
 
-  const preprocessedText = preprocessText(userTextEl.value);
-  const tfidfEntries = vectorizeToTfidf(preprocessedText, modelBundle.vectorizer);
-  if (!tfidfEntries.length) {
+  const pipeline = buildFeaturePipeline(userTextEl.value, modelBundle);
+  if (!pipeline.featureEntries.length) {
     analysisTextEl.textContent = "入力文から既知特徴量を抽出できませんでした。語彙を増やして再試行してください。";
     return;
   }
 
-  const ranking = classifyLogistic(tfidfEntries, modelBundle.classifier);
+  const ranking = classifyLogistic(pipeline.featureEntries, modelBundle.classifier);
   if (!ranking.length) {
     return;
   }
 
   const topThree = ranking.slice(0, 3);
+  const confidence = evaluateConfidence(topThree);
 
   setJudgingState(true);
   try {
     await wait(980);
-    renderResult(topThree, ranking, {
-      rawText: userTextEl.value,
-      preprocessedLength: preprocessedText.length,
-      featureCount: tfidfEntries.length,
-      tfidfEntries,
-    });
+    renderResult(topThree, ranking, pipeline, confidence);
   } finally {
     setJudgingState(false);
   }
@@ -486,8 +492,24 @@ function buildStopwordRegex(stopwords) {
   return new RegExp(words.join("|"), "g");
 }
 
-function preprocessText(text) {
-  let normalized = text.normalize("NFKC").replace(/\s+/g, "");
+function cleanAozoraNoise(text) {
+  let normalized = String(text || "").normalize("NFKC");
+  normalized = normalized.replace(/\r\n?/g, "\n");
+  normalized = normalized.replace(/《[^》]*》/g, "");
+  normalized = normalized.replace(/［＃[^］]*］/g, "");
+  normalized = normalized.replace(/｜/g, "");
+  normalized = normalized.replace(/^[-=]{20,}$/gm, "");
+  normalized = normalized.replace(/^(入力|校正|底本|公開|初出|翻訳|作成)[：:].*$/gm, "");
+  if (normalized.includes("底本：")) {
+    normalized = normalized.split("底本：", 1)[0];
+  }
+  normalized = normalized.replace(/\n{2,}/g, "\n");
+  normalized = normalized.replace(/[ \t\u3000]+/g, " ");
+  return normalized.trim();
+}
+
+function preprocessTextForChar(text) {
+  let normalized = cleanAozoraNoise(text).replace(/\s+/g, "");
   normalized = normalized.replace(/[「」『』（）()［］【】〈〉《》〔〕…・。、，．！？!?ー〜～:：;；"'`]/g, "");
   normalized = normalized.replace(/[0-9０-９]+/g, "");
 
@@ -495,30 +517,113 @@ function preprocessText(text) {
   if (stopwordRegex) {
     normalized = normalized.replace(stopwordRegex, "");
   }
-
   return normalized;
 }
 
-function vectorizeToTfidf(text, vectorizer) {
+function preprocessTextForWord(text) {
+  let normalized = cleanAozoraNoise(text);
+  normalized = normalized.replace(/[0-9０-９]+/g, " ");
+  normalized = normalized.replace(/[「」『』（）()［］【】〈〉《》〔〕…・。、，．！？!?ー〜～:：;；"'`]/g, " ");
+  normalized = normalized.replace(/\s+/g, " ").trim();
+
+  const stopwordSet = new Set(getStopwords());
+  const tokens = normalized.match(/[一-龥々〆ヵヶ]{2,}|[ぁ-ゖー]{2,}|[ァ-ヴー]{2,}|[A-Za-z]{2,}/g) || [];
+  return tokens.filter((token) => !stopwordSet.has(token));
+}
+
+function inferIndexToToken(vectorizer) {
+  if (Array.isArray(vectorizer.index_to_token) && vectorizer.index_to_token.length) {
+    return vectorizer.index_to_token;
+  }
+  const inferred = [];
+  Object.entries(vectorizer.vocabulary || {}).forEach(([token, rawIndex]) => {
+    inferred[Number(rawIndex)] = token;
+  });
+  return inferred;
+}
+
+function resolveVectorizerSpecs(bundle) {
+  const specs = [];
+  let offset = 0;
+
+  if (bundle.vectorizers && bundle.vectorizers.char) {
+    const vectorizer = bundle.vectorizers.char;
+    const size = inferIndexToToken(vectorizer).length;
+    specs.push({ name: "char", vectorizer, offset, size });
+    offset += size;
+  }
+
+  if (bundle.vectorizers && bundle.vectorizers.word) {
+    const vectorizer = bundle.vectorizers.word;
+    const size = inferIndexToToken(vectorizer).length;
+    specs.push({ name: "word", vectorizer, offset, size });
+    offset += size;
+  }
+
+  if (!specs.length && bundle.vectorizer) {
+    const vectorizer = bundle.vectorizer;
+    const size = inferIndexToToken(vectorizer).length;
+    specs.push({ name: "char", vectorizer, offset, size });
+    offset += size;
+  }
+
+  return { specs, nextOffset: offset };
+}
+
+function extractStyleFeatures(text) {
+  const cleaned = cleanAozoraNoise(text);
+  const compact = cleaned.replace(/\s+/g, "");
+  const charLength = Math.max(1, getCharLength(compact));
+
+  const sentences = cleaned
+    .split(/[。！？!?]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const sentenceCount = Math.max(1, sentences.length);
+  const sentenceLengths = sentences.map((sentence) => Math.max(1, getCharLength(sentence)));
+  const avgSentenceLength = sentenceLengths.reduce((sum, value) => sum + value, 0) / sentenceCount;
+  const variance =
+    sentenceLengths.reduce((sum, value) => sum + (value - avgSentenceLength) * (value - avgSentenceLength), 0) /
+    sentenceCount;
+
+  return {
+    avg_sentence_length: avgSentenceLength,
+    sentence_length_std: Math.sqrt(variance),
+    sentence_count_log: Math.log(sentenceCount + 1),
+    first_person_rate: countMatches(compact, /私|わたし|僕|ぼく|俺|おれ|わし/g) / charLength,
+    emotion_punct_rate: countMatches(cleaned, /[！？!?]/g) / charLength,
+    comma_rate: countMatches(cleaned, /[、，,]/g) / charLength,
+    quote_rate: countMatches(cleaned, /[「」『』]/g) / charLength,
+    kanji_rate: countMatches(compact, /[一-龥々〆ヵヶ]/g) / charLength,
+    hiragana_rate: countMatches(compact, /[ぁ-ゖ]/g) / charLength,
+    katakana_rate: countMatches(compact, /[ァ-ヴー]/g) / charLength,
+  };
+}
+
+function countMatches(text, regex) {
+  const matches = String(text || "").match(regex);
+  return matches ? matches.length : 0;
+}
+
+function vectorizeCharEntries(text, vectorizer, offset = 0) {
   const counts = new Map();
   const [minN, maxN] = vectorizer.ngram_range;
-  const vocabulary = vectorizer.vocabulary;
-  const idf = vectorizer.idf;
+  const vocabulary = vectorizer.vocabulary || {};
+  const idf = vectorizer.idf || [];
+  const indexToToken = inferIndexToToken(vectorizer);
 
   for (let size = minN; size <= maxN; size += 1) {
     if (text.length < size) {
       continue;
     }
-
     for (let index = 0; index <= text.length - size; index += 1) {
       const token = text.slice(index, index + size);
       const rawIndex = vocabulary[token];
       if (rawIndex === undefined) {
         continue;
       }
-
-      const tokenIndex = Number(rawIndex);
-      counts.set(tokenIndex, (counts.get(tokenIndex) || 0) + 1);
+      const localIndex = Number(rawIndex);
+      counts.set(localIndex, (counts.get(localIndex) || 0) + 1);
     }
   }
 
@@ -526,32 +631,136 @@ function vectorizeToTfidf(text, vectorizer) {
     return [];
   }
 
-  const entries = [];
+  const temp = [];
   let normSquare = 0;
-
-  counts.forEach((tf, tokenIndex) => {
-    const value = tf * (idf[tokenIndex] || 1);
-    entries.push([tokenIndex, value]);
+  counts.forEach((tf, localIndex) => {
+    const value = tf * (idf[localIndex] || 1);
+    temp.push({ localIndex, value, token: indexToToken[localIndex] || "" });
     normSquare += value * value;
   });
 
   const norm = Math.sqrt(normSquare) || 1;
-  return entries.map(([tokenIndex, value]) => [tokenIndex, value / norm]);
+  return temp.map((item) => ({
+    index: offset + item.localIndex,
+    value: item.value / norm,
+    token: item.token,
+    source: "char",
+  }));
 }
 
-function classifyLogistic(tfidfEntries, classifier) {
+function vectorizeWordEntries(tokens, vectorizer, offset = 0) {
+  if (!Array.isArray(tokens) || !tokens.length) {
+    return [];
+  }
+
+  const counts = new Map();
+  const [minN, maxN] = vectorizer.ngram_range;
+  const vocabulary = vectorizer.vocabulary || {};
+  const idf = vectorizer.idf || [];
+  const indexToToken = inferIndexToToken(vectorizer);
+
+  for (let size = minN; size <= maxN; size += 1) {
+    if (tokens.length < size) {
+      continue;
+    }
+    for (let index = 0; index <= tokens.length - size; index += 1) {
+      const token = tokens.slice(index, index + size).join(" ");
+      const rawIndex = vocabulary[token];
+      if (rawIndex === undefined) {
+        continue;
+      }
+      const localIndex = Number(rawIndex);
+      counts.set(localIndex, (counts.get(localIndex) || 0) + 1);
+    }
+  }
+
+  if (!counts.size) {
+    return [];
+  }
+
+  const temp = [];
+  let normSquare = 0;
+  counts.forEach((tf, localIndex) => {
+    const value = tf * (idf[localIndex] || 1);
+    temp.push({ localIndex, value, token: (indexToToken[localIndex] || "").replace(/\s+/g, "") });
+    normSquare += value * value;
+  });
+
+  const norm = Math.sqrt(normSquare) || 1;
+  return temp.map((item) => ({
+    index: offset + item.localIndex,
+    value: item.value / norm,
+    token: item.token,
+    source: "word",
+  }));
+}
+
+function vectorizeStyleEntries(styleMetrics, styleConfig, offset = 0) {
+  if (!styleConfig || !Array.isArray(styleConfig.names) || !styleConfig.names.length) {
+    return [];
+  }
+
+  const means = Array.isArray(styleConfig.means) ? styleConfig.means : [];
+  const scales = Array.isArray(styleConfig.scales) ? styleConfig.scales : [];
+  const entries = [];
+
+  styleConfig.names.forEach((name, index) => {
+    const value = Number(styleMetrics[name] || 0);
+    const mean = Number(means[index] || 0);
+    const scaleRaw = Number(scales[index] || 1);
+    const scale = scaleRaw > 0 ? scaleRaw : 1;
+    const standardized = (value - mean) / scale;
+    if (!Number.isFinite(standardized) || standardized === 0) {
+      return;
+    }
+    entries.push({ index: offset + index, value: standardized, token: "", source: "style" });
+  });
+
+  return entries;
+}
+
+function buildFeaturePipeline(rawText, bundle) {
+  const vectorizerInfo = resolveVectorizerSpecs(bundle);
+  const charText = preprocessTextForChar(rawText);
+  const wordTokens = preprocessTextForWord(rawText);
+  const styleMetrics = extractStyleFeatures(rawText);
+
+  const tokenEntries = [];
+  vectorizerInfo.specs.forEach((spec) => {
+    if (spec.name === "char") {
+      tokenEntries.push(...vectorizeCharEntries(charText, spec.vectorizer, spec.offset));
+    }
+    if (spec.name === "word") {
+      tokenEntries.push(...vectorizeWordEntries(wordTokens, spec.vectorizer, spec.offset));
+    }
+  });
+
+  const styleEntries = vectorizeStyleEntries(styleMetrics, bundle.style_features, vectorizerInfo.nextOffset);
+  const featureEntries = [...tokenEntries, ...styleEntries].map((item) => [item.index, item.value]);
+
+  return {
+    rawText,
+    charText,
+    wordTokens,
+    styleMetrics,
+    tokenEntries,
+    featureEntries,
+  };
+}
+
+function classifyLogistic(featureEntries, classifier) {
   const classes = classifier.classes;
   const coef = classifier.coef;
   const intercept = classifier.intercept;
   const logits = intercept.map((bias) => bias);
 
-  tfidfEntries.forEach(([tokenIndex, value]) => {
+  featureEntries.forEach(([featureIndex, value]) => {
     for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
       const weights = coef[classIndex];
-      if (!weights || weights[tokenIndex] === undefined) {
+      if (!weights || weights[featureIndex] === undefined) {
         continue;
       }
-      logits[classIndex] += weights[tokenIndex] * value;
+      logits[classIndex] += weights[featureIndex] * value;
     }
   });
 
@@ -577,11 +786,45 @@ function classifyLogistic(tfidfEntries, classifier) {
     .sort((a, b) => b.percent - a.percent);
 }
 
-function renderResult(topThree, ranking, pipeline) {
+function evaluateConfidence(topThree) {
   const winner = topThree[0];
-  topAuthorEl.textContent = winner.name;
-  topScoreEl.textContent = `推定確率 ${winner.percent.toFixed(1)}%`;
-  topCommentEl.textContent = winner.comment;
+  const second = topThree[1] || { percent: 0, name: "-" };
+  const margin = winner.percent - second.percent;
+  const abstain = modelBundle?.decision_policy?.abstain || {};
+
+  const enabled = abstain.enabled !== false;
+  const minTop1 = Number(abstain.min_top1_percent ?? 36);
+  const minMargin = Number(abstain.min_margin_percent ?? 7);
+
+  const lowTop1 = winner.percent < minTop1;
+  const lowMargin = margin < minMargin;
+
+  return {
+    isAbstain: enabled && (lowTop1 || lowMargin),
+    lowTop1,
+    lowMargin,
+    minTop1,
+    minMargin,
+    margin,
+    second,
+  };
+}
+
+function renderResult(topThree, ranking, pipeline, confidence) {
+  const winner = topThree[0];
+
+  topResultEl.classList.toggle("is-abstain", confidence.isAbstain);
+
+  if (confidence.isAbstain) {
+    topAuthorEl.textContent = "判定保留（拮抗）";
+    topScoreEl.textContent = `1位 ${winner.name} ${winner.percent.toFixed(1)}% / 2位 ${confidence.second.name} ${confidence.second.percent.toFixed(1)}%`;
+    topCommentEl.textContent =
+      `上位2候補の差が小さいため断定せず保留にしました。参考として現時点の1位は「${winner.name}」です。`;
+  } else {
+    topAuthorEl.textContent = winner.name;
+    topScoreEl.textContent = `推定確率 ${winner.percent.toFixed(1)}%`;
+    topCommentEl.textContent = winner.comment;
+  }
 
   topWorkEl.textContent = winner.representativeWork ? `代表作: ${winner.representativeWork}` : "代表作: 情報なし";
   if (winner.aozoraUrl) {
@@ -593,8 +836,8 @@ function renderResult(topThree, ranking, pipeline) {
   }
 
   renderRankingItems(topThree);
-  const analysisText = buildAnalysisText(ranking, pipeline);
-  analysisTextEl.textContent = analysisText;
+  analysisTextEl.textContent = buildAnalysisText(ranking, pipeline, confidence);
+
   resultPanelEl.hidden = false;
   resultPanelEl.classList.remove("is-reveal");
   void resultPanelEl.offsetWidth;
@@ -650,28 +893,49 @@ function renderRankingItems(items) {
   });
 }
 
-function buildAnalysisText(ranking, pipeline) {
+function buildAnalysisText(ranking, pipeline, confidence) {
   const top = ranking[0];
   const second = ranking[1];
-  const margin = second ? top.percent - second.percent : top.percent;
-  const topTokens = pickTopContributingTokens(top.classIndex, pipeline.tfidfEntries, 4);
+
+  const topTokens = pickTopContributingTokens(top.classIndex, pipeline.tokenEntries, 5);
+  const secondTokens = second ? pickTopContributingTokens(second.classIndex, pipeline.tokenEntries, 5) : [];
+  const exclusiveTopTokens = topTokens.filter((token) => !secondTokens.includes(token)).slice(0, 3);
+
   const rhythm = summarizeWritingRhythm(pipeline.rawText || "");
+  const styleSummary = summarizeStyleMetrics(pipeline.styleMetrics || {});
 
-  const reasonByTokens = topTokens.length
-    ? `「${topTokens.join("」「")}」のような言い回しが、この文豪らしさとして強く反応しました。`
-    : "言い回しの特徴が全体に散らばっていました。";
+  const comparison = second
+    ? `${top.name}は${second.name}より${confidence.margin.toFixed(1)}pt高い結果でした。`
+    : `${top.name}が最上位でした。`;
 
-  const reasonByRhythm = `文の運びは${rhythm.tempoText}（${rhythm.sentenceCount}文 / 1文平均${rhythm.avgSentenceLength.toFixed(1)}字）で、${rhythm.perspectiveText}。${rhythm.emotionText}。`;
+  const tokenLine = exclusiveTopTokens.length
+    ? `特に「${exclusiveTopTokens.join("」「")}」の語感が${top.name}側に寄りました。`
+    : `語の特徴は拮抗しており、複数候補にまたがりました。`;
 
-  const reasonByComparison = second
-    ? describeGap(top.name, second.name, margin)
-    : `${top.name}に最も近い傾向が出ました。`;
+  const secondLine = secondTokens.length
+    ? `一方で${second.name}側では「${secondTokens.slice(0, 2).join("」「")}」が比較的強く、ここが分かれ目になりました。`
+    : "比較対象の特徴差は小さめでした。";
 
-  return `判定理由は2つです。1) ${reasonByRhythm} 2) ${reasonByTokens} さらに、2位との比較では${reasonByComparison} 助詞などの共通語は除外して、内容に関わる言い回しを中心に比べています。`;
+  const rhythmLine =
+    `文の運びは${rhythm.tempoText}（${rhythm.sentenceCount}文 / 1文平均${rhythm.avgSentenceLength.toFixed(1)}字）で、` +
+    `${rhythm.perspectiveText}。${rhythm.emotionText}。${styleSummary}`;
+
+  if (confidence.isAbstain) {
+    const reasons = [];
+    if (confidence.lowTop1) {
+      reasons.push(`1位確率が${confidence.minTop1.toFixed(1)}%未満`);
+    }
+    if (confidence.lowMargin) {
+      reasons.push(`1位と2位の差が${confidence.minMargin.toFixed(1)}pt未満`);
+    }
+    return `判定は保留です（${reasons.join("、")}）。${comparison} ${tokenLine} ${secondLine} ${rhythmLine}`;
+  }
+
+  return `${comparison} ${tokenLine} ${secondLine} ${rhythmLine}`;
 }
 
 function summarizeWritingRhythm(text) {
-  const normalized = String(text || "").replace(/\s+/g, "");
+  const normalized = cleanAozoraNoise(text).replace(/\s+/g, "");
   const sentences = normalized
     .split(/[。！？!?]+/)
     .map((item) => item.trim())
@@ -688,13 +952,13 @@ function summarizeWritingRhythm(text) {
     tempoText = "長めの文でじっくり描写する型";
   }
 
-  const firstPersonCount = (normalized.match(/私|わたし|僕|ぼく|俺|おれ|わし/g) || []).length;
+  const firstPersonCount = countMatches(normalized, /私|わたし|僕|ぼく|俺|おれ|わし/g);
   const perspectiveText =
     firstPersonCount >= 2
       ? "一人称が多く、内面に寄った語り口です"
       : "一人称は控えめで、情景や出来事を見せる語り口です";
 
-  const punctCount = (String(text || "").match(/[！？!?]/g) || []).length;
+  const punctCount = countMatches(text, /[！？!?]/g);
   let emotionText = "感情表現は抑えめで、落ち着いた印象です";
   if (punctCount >= 3) {
     emotionText = "感嘆符・疑問符が多く、感情の波がはっきりしています";
@@ -711,45 +975,49 @@ function summarizeWritingRhythm(text) {
   };
 }
 
-function describeGap(topName, secondName, margin) {
-  if (margin >= 15) {
-    return `${secondName}より${margin.toFixed(1)}pt高く、${topName}らしさがはっきり出ています。`;
+function summarizeStyleMetrics(styleMetrics) {
+  const kanjiRate = Number(styleMetrics.kanji_rate || 0);
+  const hiraganaRate = Number(styleMetrics.hiragana_rate || 0);
+  const quoteRate = Number(styleMetrics.quote_rate || 0);
+
+  let scriptTone = "漢字とひらがなの配分が中庸";
+  if (kanjiRate >= 0.4) {
+    scriptTone = "漢字比率が高めで引き締まった語り";
+  } else if (hiraganaRate >= 0.56) {
+    scriptTone = "ひらがな比率が高めで柔らかい語り";
   }
-  if (margin >= 6) {
-    return `${secondName}より${margin.toFixed(1)}pt高く、${topName}がやや優勢です。`;
-  }
-  return `${secondName}との差は${margin.toFixed(1)}ptで僅差です。`;
+
+  const quoteTone = quoteRate >= 0.02 ? "会話文の比率も高め" : "地の文中心";
+  return `また、${scriptTone}で、${quoteTone}の傾向も一致しました`;
 }
 
-function pickTopContributingTokens(classIndex, tfidfEntries, limit) {
-  if (!modelBundle) {
+function pickTopContributingTokens(classIndex, tokenEntries, limit) {
+  if (!modelBundle || !Array.isArray(tokenEntries) || !tokenEntries.length) {
+    return [];
+  }
+  const coef = modelBundle.classifier.coef[classIndex];
+  if (!coef) {
     return [];
   }
 
-  const coef = modelBundle.classifier.coef[classIndex];
-  const indexToToken = modelBundle.vectorizer.index_to_token || [];
   const contributions = [];
-
-  tfidfEntries.forEach(([tokenIndex, tfidfValue]) => {
-    const weight = coef[tokenIndex] || 0;
-    const contribution = tfidfValue * weight;
+  tokenEntries.forEach((entry) => {
+    if (!entry.token) {
+      return;
+    }
+    const weight = coef[entry.index] || 0;
+    const contribution = entry.value * weight;
     if (contribution <= 0) {
       return;
     }
-
-    const token = indexToToken[tokenIndex];
-    if (!token) {
-      return;
-    }
-
-    contributions.push({ token, contribution });
+    contributions.push({ token: entry.token, contribution });
   });
 
   contributions.sort((a, b) => b.contribution - a.contribution);
 
   const picked = [];
   contributions.forEach((item) => {
-    if (!/^[ぁ-んァ-ヶ一-龯]{2,3}$/.test(item.token)) {
+    if (!/^[ぁ-んァ-ヶ一-龯A-Za-z]{2,14}$/.test(item.token)) {
       return;
     }
     if (picked.length >= limit || picked.includes(item.token)) {
@@ -788,5 +1056,5 @@ function updateLengthState() {
 }
 
 function getCharLength(text) {
-  return [...text.replace(/\s+/g, "")].length;
+  return [...String(text || "").replace(/\s+/g, "")].length;
 }

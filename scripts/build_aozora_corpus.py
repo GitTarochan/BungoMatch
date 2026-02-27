@@ -10,6 +10,7 @@ import json
 import re
 import sys
 import time
+import unicodedata
 import zipfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -153,10 +154,13 @@ def extract_text_from_payload(payload: bytes, source_url: str) -> str:
 
 
 def clean_aozora_text(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(r"《[^》]*》", "", text)
-    text = re.sub(r"［＃.*?］", "", text)
+    text = re.sub(r"［＃[^］]*］", "", text)
     text = text.replace("｜", "")
+    text = re.sub(r"^[-=]{20,}$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^(入力|校正|底本|公開|初出|翻訳|作成)[：:].*$", "", text, flags=re.MULTILINE)
 
     if "底本：" in text:
         text = text.split("底本：", 1)[0]
@@ -168,11 +172,15 @@ def clean_aozora_text(text: str) -> str:
             text = "\n".join(parts[2:])
 
     lines = [ln.strip() for ln in text.split("\n")]
-    lines = [ln for ln in lines if ln and not ln.startswith("入力：") and not ln.startswith("校正：")]
+    lines = [
+        ln
+        for ln in lines
+        if ln and not ln.startswith("入力：") and not ln.startswith("校正：") and not ln.startswith("青空文庫")
+    ]
 
     text = "\n".join(lines)
     text = re.sub(r"\n{2,}", "\n", text)
-    text = re.sub(r"[\t\u3000 ]+", "", text)
+    text = re.sub(r"[\t\u3000 ]+", " ", text)
     return text.strip()
 
 
@@ -242,6 +250,7 @@ def build_corpus(
     min_chars: int,
     max_chars: int,
     max_chunks_per_work: int,
+    min_used_works: int,
     force_download: bool,
     include_authors: list[str] | None,
 ) -> None:
@@ -281,13 +290,17 @@ def build_corpus(
         for work in works:
             local_text = author_raw_dir / f"{work.work_id}.txt"
 
-            if local_text.exists() and not force_download:
-                clean_text = local_text.read_text(encoding="utf-8")
-            else:
-                payload = fetch_bytes(work.text_url)
-                raw_text = extract_text_from_payload(payload, work.text_url)
-                clean_text = clean_aozora_text(raw_text)
+            try:
+                if local_text.exists() and not force_download:
+                    clean_text = clean_aozora_text(local_text.read_text(encoding="utf-8"))
+                else:
+                    payload = fetch_bytes(work.text_url)
+                    raw_text = extract_text_from_payload(payload, work.text_url)
+                    clean_text = clean_aozora_text(raw_text)
                 local_text.write_text(clean_text, encoding="utf-8")
+            except Exception as exc:  # noqa: BLE001
+                eprint(f"[warn] {author_name} work={work.work_id} download/parse failed: {exc}")
+                continue
 
             chunks = split_into_chunks(
                 clean_text,
@@ -312,8 +325,17 @@ def build_corpus(
                 stats[author_name]["chunks"] += 1
                 stats[author_name]["chars"] += len(chunk)
 
-            if stats[author_name]["chunks"] >= target_chunks_per_author:
+            if (
+                stats[author_name]["chunks"] >= target_chunks_per_author
+                and stats[author_name]["used_works"] >= min_used_works
+            ):
                 break
+
+        if stats[author_name]["used_works"] < min_used_works:
+            eprint(
+                f"[warn] {author_name}: used works {stats[author_name]['used_works']} "
+                f"< min_used_works {min_used_works}"
+            )
 
     if not corpus_rows:
         raise RuntimeError("Corpus generation failed: no rows created")
@@ -340,6 +362,7 @@ def build_corpus(
             "min_chars": min_chars,
             "max_chars": max_chars,
             "max_chunks_per_work": max_chunks_per_work,
+            "min_used_works": min_used_works,
         },
         "source": {
             "metadata_zip": str(metadata_zip),
@@ -363,6 +386,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-chars", type=int, default=100)
     parser.add_argument("--max-chars", type=int, default=320)
     parser.add_argument("--max-chunks-per-work", type=int, default=80)
+    parser.add_argument("--min-used-works", type=int, default=10)
     parser.add_argument("--include-authors-file", default="")
     parser.add_argument("--force-download", action="store_true")
     parser.add_argument("--force-metadata", action="store_true")
@@ -392,6 +416,7 @@ def main() -> int:
         min_chars=args.min_chars,
         max_chars=args.max_chars,
         max_chunks_per_work=args.max_chunks_per_work,
+        min_used_works=args.min_used_works,
         force_download=args.force_download,
         include_authors=include_authors,
     )

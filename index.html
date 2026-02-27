@@ -10,15 +10,15 @@
       href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260224-2" />
-    <script src="app.js?v=20260224-6" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260225-1" />
+    <script src="app.js?v=20260225-1" defer></script>
   </head>
   <body>
     <div class="background-orb orb-1"></div>
     <div class="background-orb orb-2"></div>
     <main class="app-shell">
       <header class="hero">
-        <p class="eyebrow">AIMathBook CHAPTER 6 Inspired</p>
+        <p class="eyebrow">Bungo Match</p>
         <h1>文豪スタイル判定アプリ</h1>
         <p class="lead">
           文章を入力すると、有名文豪10人のうち誰に似ているかを推定します。<br />
@@ -86,7 +86,7 @@
 
       <footer class="footer-note">
         <p>
-          青空文庫コーパスから学習・評価したモデルを読み込み、前処理→TF-IDF特徴量→ロジスティック回帰で推定します。
+          青空文庫コーパスから学習・評価したモデルを読み込み、前処理→複合特徴量（TF-IDF＋文体指標）→ロジスティック回帰で推定します。
         </p>
       </footer>
     </main>

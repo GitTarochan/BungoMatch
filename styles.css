@@ -395,6 +395,11 @@ button:disabled {
   padding: 14px;
 }
 
+.top-result.is-abstain {
+  background: linear-gradient(160deg, #fff8f2, #fceadf);
+  border-color: #e0b89d;
+}
+
 .rank-chip {
   margin: 0 0 6px;
   color: var(--accent-strong);
@@ -434,6 +439,11 @@ button:disabled {
   color: var(--ink-soft);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.top-result.is-abstain .top-author,
+.top-result.is-abstain .top-score {
+  color: #8f3320;
 }
 
 .ranking-list {

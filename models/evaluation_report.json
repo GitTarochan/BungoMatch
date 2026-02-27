@@ -1,6 +1,7 @@
 {
-  "accuracy": 0.9583333333333334,
-  "top3_accuracy": 0.9947916666666666,
+  "accuracy": 0.688715953307393,
+  "macro_f1": 0.6893933738201639,
+  "top3_accuracy": 0.8443579766536965,
   "classes": [
     "与謝野晶子",
     "夏目漱石",
@@ -15,87 +16,87 @@
   ],
   "classification_report": {
     "与謝野晶子": {
-      "precision": 0.9473684210526315,
-      "recall": 0.9473684210526315,
-      "f1-score": 0.9473684210526315,
-      "support": 19.0
-    },
-    "夏目漱石": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 16.0
-    },
-    "太宰治": {
-      "precision": 0.9285714285714286,
-      "recall": 0.8666666666666667,
-      "f1-score": 0.896551724137931,
-      "support": 15.0
-    },
-    "宮沢賢治": {
-      "precision": 0.9629629629629629,
-      "recall": 1.0,
-      "f1-score": 0.9811320754716981,
-      "support": 26.0
-    },
-    "森鴎外": {
-      "precision": 1.0,
-      "recall": 0.9375,
-      "f1-score": 0.967741935483871,
-      "support": 16.0
-    },
-    "樋口一葉": {
-      "precision": 0.9615384615384616,
-      "recall": 1.0,
-      "f1-score": 0.9803921568627451,
+      "precision": 0.8571428571428571,
+      "recall": 0.72,
+      "f1-score": 0.782608695652174,
       "support": 25.0
     },
-    "江戸川乱歩": {
+    "夏目漱石": {
+      "precision": 0.6451612903225806,
+      "recall": 0.5882352941176471,
+      "f1-score": 0.6153846153846154,
+      "support": 34.0
+    },
+    "太宰治": {
       "precision": 1.0,
-      "recall": 0.9473684210526315,
-      "f1-score": 0.972972972972973,
-      "support": 19.0
+      "recall": 0.5,
+      "f1-score": 0.6666666666666666,
+      "support": 10.0
+    },
+    "宮沢賢治": {
+      "precision": 1.0,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.9565217391304348,
+      "support": 24.0
+    },
+    "森鴎外": {
+      "precision": 0.3448275862068966,
+      "recall": 0.43478260869565216,
+      "f1-score": 0.38461538461538464,
+      "support": 23.0
+    },
+    "樋口一葉": {
+      "precision": 0.96,
+      "recall": 1.0,
+      "f1-score": 0.9795918367346939,
+      "support": 24.0
+    },
+    "江戸川乱歩": {
+      "precision": 0.5365853658536586,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.676923076923077,
+      "support": 24.0
     },
     "泉鏡花": {
-      "precision": 1.0,
-      "recall": 0.9333333333333333,
-      "f1-score": 0.9655172413793104,
-      "support": 15.0
+      "precision": 0.6888888888888889,
+      "recall": 0.8611111111111112,
+      "f1-score": 0.7654320987654321,
+      "support": 36.0
     },
     "芥川竜之介": {
-      "precision": 1.0,
-      "recall": 0.9,
-      "f1-score": 0.9473684210526315,
-      "support": 20.0
-    },
-    "谷崎潤一郎": {
-      "precision": 0.84,
-      "recall": 1.0,
-      "f1-score": 0.9130434782608695,
+      "precision": 0.5909090909090909,
+      "recall": 0.6190476190476191,
+      "f1-score": 0.6046511627906976,
       "support": 21.0
     },
-    "accuracy": 0.9583333333333334,
+    "谷崎潤一郎": {
+      "precision": 0.75,
+      "recall": 0.3333333333333333,
+      "f1-score": 0.46153846153846156,
+      "support": 36.0
+    },
+    "accuracy": 0.688715953307393,
     "macro avg": {
-      "precision": 0.9640441274125484,
-      "recall": 0.9532236842105263,
-      "f1-score": 0.9572088426674661,
-      "support": 192.0
+      "precision": 0.7373515079323972,
+      "recall": 0.6889843299638696,
+      "f1-score": 0.6893933738201639,
+      "support": 257.0
     },
     "weighted avg": {
-      "precision": 0.9616878646045312,
-      "recall": 0.9583333333333334,
-      "f1-score": 0.9585516212778682,
-      "support": 192.0
+      "precision": 0.7214872742096361,
+      "recall": 0.688715953307393,
+      "f1-score": 0.6832008135551111,
+      "support": 257.0
     }
   },
   "confusion_matrix": [
     [
       18,
+      1,
       0,
       0,
-      0,
-      0,
-      0,
+      4,
+      1,
       0,
       0,
       0,
@@ -103,98 +104,98 @@
     ],
     [
       0,
-      16,
+      20,
+      0,
+      0,
+      4,
+      0,
+      1,
+      2,
+      6,
+      1
+    ],
+    [
+      2,
+      0,
+      5,
+      0,
+      2,
       0,
       0,
       0,
+      1,
+      0
+    ],
+    [
       0,
       0,
+      0,
+      22,
+      1,
+      0,
+      1,
       0,
       0,
       0
     ],
     [
       0,
+      7,
+      0,
+      0,
+      10,
+      0,
+      0,
+      5,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      24,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      22,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      31,
+      1,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      5,
       0,
       13,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1
-    ],
-    [
-      0,
-      0,
-      0,
-      26,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      1,
-      0,
-      0,
-      0,
-      15,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      25,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      18,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      14,
-      0,
-      1
-    ],
-    [
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      18,
       1
     ],
     [
@@ -202,22 +203,157 @@
       0,
       0,
       0,
+      7,
       0,
+      11,
+      6,
       0,
-      0,
-      0,
-      0,
-      21
+      12
     ]
   ],
   "test_size": 0.2,
   "random_state": 42,
   "samples": {
-    "train": 766,
-    "test": 192,
-    "total": 958
+    "train": 1014,
+    "test": 257,
+    "total": 1271,
+    "raw_total": 1271
+  },
+  "balance": {
+    "min_works_per_author": 10,
+    "max_works_per_author": 18,
+    "max_chunks_per_work": 12,
+    "max_samples_per_author": 220,
+    "authors": {
+      "与謝野晶子": {
+        "available_works": 15,
+        "selected_works": 15,
+        "used_works": 15,
+        "samples": 148
+      },
+      "夏目漱石": {
+        "available_works": 16,
+        "selected_works": 16,
+        "used_works": 16,
+        "samples": 140
+      },
+      "太宰治": {
+        "available_works": 18,
+        "selected_works": 18,
+        "used_works": 18,
+        "samples": 35
+      },
+      "宮沢賢治": {
+        "available_works": 10,
+        "selected_works": 10,
+        "used_works": 10,
+        "samples": 77
+      },
+      "森鴎外": {
+        "available_works": 12,
+        "selected_works": 12,
+        "used_works": 12,
+        "samples": 143
+      },
+      "樋口一葉": {
+        "available_works": 12,
+        "selected_works": 12,
+        "used_works": 12,
+        "samples": 144
+      },
+      "江戸川乱歩": {
+        "available_works": 12,
+        "selected_works": 12,
+        "used_works": 12,
+        "samples": 144
+      },
+      "泉鏡花": {
+        "available_works": 13,
+        "selected_works": 13,
+        "used_works": 13,
+        "samples": 149
+      },
+      "芥川竜之介": {
+        "available_works": 17,
+        "selected_works": 17,
+        "used_works": 17,
+        "samples": 143
+      },
+      "谷崎潤一郎": {
+        "available_works": 13,
+        "selected_works": 13,
+        "used_works": 13,
+        "samples": 148
+      }
+    }
+  },
+  "work_split": {
+    "method": "author-wise work holdout",
+    "authors": {
+      "与謝野晶子": {
+        "train_works": 12,
+        "test_works": 3,
+        "train_samples": 123,
+        "test_samples": 25
+      },
+      "夏目漱石": {
+        "train_works": 13,
+        "test_works": 3,
+        "train_samples": 106,
+        "test_samples": 34
+      },
+      "太宰治": {
+        "train_works": 14,
+        "test_works": 4,
+        "train_samples": 25,
+        "test_samples": 10
+      },
+      "宮沢賢治": {
+        "train_works": 8,
+        "test_works": 2,
+        "train_samples": 53,
+        "test_samples": 24
+      },
+      "森鴎外": {
+        "train_works": 10,
+        "test_works": 2,
+        "train_samples": 120,
+        "test_samples": 23
+      },
+      "樋口一葉": {
+        "train_works": 10,
+        "test_works": 2,
+        "train_samples": 120,
+        "test_samples": 24
+      },
+      "江戸川乱歩": {
+        "train_works": 10,
+        "test_works": 2,
+        "train_samples": 120,
+        "test_samples": 24
+      },
+      "泉鏡花": {
+        "train_works": 10,
+        "test_works": 3,
+        "train_samples": 113,
+        "test_samples": 36
+      },
+      "芥川竜之介": {
+        "train_works": 14,
+        "test_works": 3,
+        "train_samples": 122,
+        "test_samples": 21
+      },
+      "谷崎潤一郎": {
+        "train_works": 10,
+        "test_works": 3,
+        "train_samples": 112,
+        "test_samples": 36
+      }
+    }
   },
   "probability_note": "predict_proba from multinomial logistic regression",
-  "preprocessing_note": "NFKC normalize + remove punctuation/digits/stopwords",
-  "avg_max_probability": 0.6100022998879556
+  "preprocessing_note": "NFKC normalize + Aozora noise cleanup + remove punctuation/digits/stopwords",
+  "feature_note": "TF-IDF(char 2-4gram + word 1-2gram) + standardized style metrics",
+  "avg_max_probability": 0.6459777518797164
 }
