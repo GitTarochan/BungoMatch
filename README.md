@@ -1,136 +1,88 @@
-# 文豪スタイル判定アプリ
+# BungoMatch — 文豪スタイル判定アプリ
 
-AIMathBook（Team Aidemy）の文豪判定機を参考に、  
-**「前処理 → 特徴量 → 分類」** の流れをそのまま使って作った Web アプリです。
+入力した日本語文章を、青空文庫由来の文豪10人のコーパスで学習したモデルで分類し、
+上位3人の候補と代表作を表示するWebアプリです。
+文章を書き、その判定をきっかけに文学作品を知る体験を目指しています。
 
-ユーザーが自由に書いた文章を入力すると、有名文豪10人コーパスに対して文体の近さを推定し、  
-**TOP3の著者**を確率付きで表示します。あわせて各著者の**代表作**と**青空文庫ページリンク**も出力します。
+**Pythonでのデータ処理・学習・評価から、JavaScriptによるブラウザ内推論までを含むリポジトリです。**
 
-## 主な機能
+## できること
 
-- 作文しやすいように、テーマ付き入力フォームを用意
-- テーマごとに推奨文字数レンジを設定（短すぎ/長すぎをガイド）
-- 入力画面に、判定候補10人の「名前＋代表作」を事前表示
-- 学習済みモデル（青空文庫コーパス由来）を読み込んでブラウザ上で推論
-- 前処理でストップワード除外を実施し、内容語の寄与を強化
-- 判定結果は TOP3 表示（著者名・確率・代表作・青空文庫リンク）
+- テーマと推奨文字数を参考に文章を入力
+- 判定候補となる文豪10人と代表作を事前に確認
+- 上位3人の分類結果、推定確率、代表作、青空文庫へのリンクを表示
+- 文体指標や判定に寄与する語句を使った分析表示
+- 判定の確信度が低い場合の案内
 
-## 機械学習パイプライン（AIMathBook準拠の構成）
+対象著者：与謝野晶子、夏目漱石、太宰治、宮沢賢治、森鴎外、
+樋口一葉、江戸川乱歩、泉鏡花、芥川竜之介、谷崎潤一郎。
 
-1. 前処理
-- 入力文: `NFKC` 正規化 + 空白/記号/数字/ストップワード除去
-- 学習コーパス: 青空文庫本文からルビ・注記などを除去して分割
+## 技術構成
 
-2. 特徴量
-- `TfidfVectorizer(analyzer="char", ngram_range=(2,3))`
-- 文字 2-gram / 3-gram の TF-IDF
+| 処理 | 実装 |
+|---|---|
+| コーパス作成 | Python、requests、青空文庫の本文・作品メタデータ |
+| 前処理 | NFKC正規化、ルビ・注記の除去、特徴量ごとの文字・トークン処理 |
+| 文字特徴量 | 文字2–4gramのTF-IDF |
+| トークン特徴量 | 正規表現で抽出したトークンの1–2gram TF-IDF（形態素解析器は不使用） |
+| 文体特徴量 | 文長、句読点、一人称、文字種比率など10次元を標準化 |
+| 分類 | scikit-learnの多クラスロジスティック回帰 |
+| Web推論 | 語彙・IDF・係数などをJSONに書き出し、JavaScriptで特徴量計算と分類 |
+| 画面 | HTML、CSS、JavaScript |
 
-3. 分類
-- `LogisticRegression`（多クラス）
-- `predict_proba` 相当の確率で順位付け
+モデルJSONを読み込んだ後の文章の特徴量計算・分類はブラウザ内で行います。
+入力文章を外部の推論APIへ送る構成ではありません。
 
-## 現在の学習済みモデル（トップ10）
+## 評価結果
 
-- 著者数: **10**
-- サンプル数: **958**（train 766 / test 192）
-- Accuracy: **0.9583**
-- Top-3 Accuracy: **0.9948**
-- モデルファイル: `models/author_style_web_model.json`
-- 詳細レポート: `models/evaluation_report.md`
+同梱Webモデルのバージョン：**2026-02-25T02:25:03Z**
 
-（上記は `models/author_style_web_model.json` の `version: 2026-02-24T08:24:18Z` 時点）
+著者ごとに**作品単位で学習・テストを分離**しています。
+同じ作品から切り出した断片が両方に入ることで、評価が過大になるのを避ける設計です。
 
-## ディレクトリ構成
+| 項目 | 値 |
+|---|---:|
+| 著者数 | 10 |
+| 全サンプル数（文章断片） | 1,271 |
+| 学習サンプル数 | 1,014 |
+| テストサンプル数 | 257 |
+| Accuracy | 68.87% |
+| Macro-F1 | 0.6894 |
+| Top-3 Accuracy | 84.44% |
 
-```text
-.
-├── index.html
-├── styles.css
-├── app.js
-├── data/
-│   ├── corpus/
-│   │   ├── aozora_corpus.csv
-│   │   ├── aozora_corpus_top10.csv
-│   │   ├── aozora_corpus_top10_stats.json
-│   │   ├── aozora_corpus_stats.json
-│   │   └── list_person_all_extended_utf8.zip
-│   └── raw/
-├── scripts/
-│   ├── build_aozora_corpus.py
-│   └── train_author_model.py
-└── models/
-    ├── author_style_model.joblib
-    ├── author_style_web_model.json
-    ├── evaluation_report.json
-    └── evaluation_report.md
-```
+[著者別の評価・混同行列](models/evaluation_report.md) /
+[評価JSON](models/evaluation_report.json)
 
-## すぐに動かす（学習済みモデルを使う）
+これらは同梱モデルの保存済み評価値です。
+旧READMEのAccuracy 95.83%・Top-3 Accuracy 99.48%は旧モデルの値であり、
+現在のモデルの評価としては使用していません。異なるデータ・評価条件の値は単純比較できません。
 
-1. 依存パッケージをインストール
+## ローカルで試す
+
+必要なもの：Git、Python 3、JavaScriptが動作するブラウザ。
 
 ```bash
-python3 -m pip install -U requests numpy scikit-learn joblib
-```
-
-2. ローカルサーバー起動
-
-```bash
+git clone https://github.com/GitTarochan/BungoMatch.git
+cd BungoMatch
 python3 -m http.server 8000
 ```
 
-3. ブラウザで開く
+[http://localhost:8000](http://localhost:8000) を開き、
+テーマを選んで文章を入力し、判定ボタンを押してください。
+学習済みモデルを試すだけなら、学習用パッケージのインストールは不要です。
 
-- [http://localhost:8000](http://localhost:8000)
+モデルJSONを取得するため、HTMLの直接起動ではなくHTTPサーバー経由で開いてください。
 
-## トップ10データ再作成と再学習
+## 再学習
 
-既存の青空文庫コーパスからトップ10著者に絞って再学習する場合:
-
-1. 対象著者ファイルを作成（`data/corpus/top10_famous_authors.txt`）
-
-```bash
-cat > data/corpus/top10_famous_authors.txt <<'EOF2'
-夏目漱石
-太宰治
-芥川竜之介
-宮沢賢治
-森鴎外
-樋口一葉
-谷崎潤一郎
-江戸川乱歩
-与謝野晶子
-泉鏡花
-EOF2
-```
-
-2. 10人分CSVを抽出
+以下は同梱の10著者CSVから学習する手順です。
+学習コードの型表記に対応した **Python 3.10以上** を使用してください。
 
 ```bash
-python3 - <<'PY'
-import csv
-from pathlib import Path
-
-authors = set(Path("data/corpus/top10_famous_authors.txt").read_text(encoding="utf-8").splitlines())
-src = Path("data/corpus/aozora_corpus.csv")
-dst = Path("data/corpus/aozora_corpus_top10.csv")
-
-with src.open("r", encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    rows = [row for row in reader if row["label"] in authors]
-    fieldnames = reader.fieldnames
-
-with dst.open("w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(rows)
-PY
-```
-
-3. 学習・評価・Webモデル書き出し
-
-```bash
-python3 scripts/train_author_model.py \
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install requests numpy scipy scikit-learn joblib
+python scripts/train_author_model.py \
   --input-csv data/corpus/aozora_corpus_top10.csv \
   --model-joblib models/author_style_model.joblib \
   --web-model-json models/author_style_web_model.json \
@@ -139,20 +91,52 @@ python3 scripts/train_author_model.py \
   --metadata-zip data/corpus/list_person_all_extended_utf8.zip \
   --test-size 0.2 \
   --random-state 42 \
-  --max-features 5000
+  --max-char-features 5200 \
+  --max-word-features 3200 \
+  --min-works-per-author 10 \
+  --max-works-per-author 18 \
+  --max-chunks-per-work 12 \
+  --max-samples-per-author 220
 ```
 
-## 判定画面の仕様
+Windowsでは仮想環境の有効化を `.venv\Scripts\activate` に置き換えてください。
+この操作はローカルのモデル・評価ファイルを更新します。
+依存ライブラリのバージョンは固定していないため、保存済み評価値との完全一致は保証しません。
 
-- 判定候補10人（名前＋代表作）を入力画面で事前表示
-- 判定ボタン押下後、判定中アニメーションを表示
-- 出力時に TOP3 を表示
-  - 著者名
-  - 推定確率
-  - 代表作
-  - 青空文庫ページリンク
+コーパス作成スクリプトのオプションは次のコマンドで確認できます。
 
-## 参考・クレジット
+```bash
+python scripts/build_aozora_corpus.py --help
+python scripts/train_author_model.py --help
+```
 
-- 参考実装: [TeamAidemy/AIMathBook](https://github.com/TeamAidemy/AIMathBook)
-- コーパス出典: [青空文庫](https://www.aozora.gr.jp/)
+## コードを読む場合
+
+| ファイル | 内容 |
+|---|---|
+| [scripts/build_aozora_corpus.py](scripts/build_aozora_corpus.py) | 本文取得、ノイズ除去、コーパス作成 |
+| [scripts/train_author_model.py](scripts/train_author_model.py) | 作品単位の分割、特徴量、学習、評価、JSON出力 |
+| [app.js](app.js) | ブラウザ内推論と結果表示 |
+| [index.html](index.html) / [styles.css](styles.css) | 入力・結果画面 |
+| [models/evaluation_report.md](models/evaluation_report.md) | 保存済みの評価結果 |
+
+## 制約・今後の検証
+
+- 評価は青空文庫内の著者分類に対するものです。一般ユーザーの文章に対する精度は未検証です。
+- 語彙や話題、時代による表記の違いも判定に影響します。
+- 表示確率は分類モデルの出力で、文体の類似度や文学的評価を直接測ったものではありません。
+- 候補は10人に限定されます。候補外の著者や文章でも、この集合に対する判定になります。
+- 著者ごとのサンプル数・性能に差があります。クラス別評価も併せて確認してください。
+- 今後の検証課題は、特徴量ごとの比較、複数の作品分割での評価、PythonとJavaScriptの推論結果の一致確認です。
+
+## 参考・データ出典
+
+- 参考実装：[TeamAidemy/AIMathBook](https://github.com/TeamAidemy/AIMathBook)
+- コーパス出典：[青空文庫](https://www.aozora.gr.jp/)
+
+参考実装の「前処理→特徴量→分類」という構成を出発点にした学習作品です。
+現在の実装には、作品単位の評価、複数特徴量の結合、Web用モデル出力、
+ブラウザ内推論、代表作への導線が含まれます。
+
+コードの参照元とコーパスの出典は別に扱い、データを再利用する場合は
+各作品の著者・翻訳者・底本等の情報と青空文庫の利用条件を確認してください。
